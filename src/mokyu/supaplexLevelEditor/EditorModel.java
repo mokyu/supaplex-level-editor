@@ -79,11 +79,19 @@ public class EditorModel {
             setProperty("language", "EN");
         }
     }
-
+    /**
+     * Get configuration property from config.properties
+     * @param key
+     * @return String or null when key not found
+     */
     public String getProperty(String key) {
         return properties.getProperty(key);
     }
-
+    /**
+     *  Set configuration property in config.properties
+     * @param key the key to set
+     * @param value they value belonging to the key
+     */
     public void setProperty(String key, String value) {
         properties.setProperty(key, value);
         try {
