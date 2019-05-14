@@ -15,9 +15,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package mokyu.supaplexLevelEditor;
+
 import mokyu.libsupaplex.*;
-
-
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 /**
  *
  * @author Mokyu
@@ -28,15 +29,16 @@ public class Editor {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        try{
+        try {
             language.getTranslations();
-        }catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         final EditorModel model = new EditorModel();
         final EditorController controller = new EditorController(model);
         final EditorView view = new EditorView(controller);
-        controller.addView(view);
+        controller.setView(view);
+        view.setIcons(iconGenerator.getTilesetFromFile("resources/tiles.png"));
     }
 
 }

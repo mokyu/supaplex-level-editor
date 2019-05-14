@@ -16,21 +16,42 @@
  */
 package mokyu.libsupaplex;
 
- /**
- * Tile object, used to set, get and compare game tiles on a Supaplex level.
- * In total there are 28 tiles, directly comparable with other Tiles
+/**
+ * Tile object, used to set, get and compare game tiles on a Supaplex level. In
+ * total there are 28 tiles, directly comparable with other Tiles
  */
 public class Tile {
+
     private byte rawTile;
+    private String niceName;
+
     /**
      * Creates a Tile object from a byte
+     *
      * @param rawTile value between 0x0 and 0x28 expected
      */
     public Tile(byte rawTile) {
+        String[] names = {
+            "Void", "Zonk", "Base", "Murphy", "Infotron",
+            "RAM chip (Standard)", "Hardware (Standard)",
+            "Exit", "Utility Disk (Orange)", "Port (right)",
+            "Port (Down)", "Port (Left)", "Port (Up)",
+            "Sp. Port (Right)", "Sp. Port (Down)", "Sp. Port (Left)",
+            "Sp. Port (Up)", "Snik Snak", "Utility Disk (Yellow)",
+            "Terminal", "Utility Disk (Red)", "Port (Vertical)",
+            "Port (Horizontal)", "Port (Complete)", "Electron",
+            "Bug", "RAM Chip (Left)", "RAM chip (Right)", "Hardware 0",
+            "Hardware 1", "Hardware 2", "Hardware 3", "Hardware 4",
+            "Hardware 5", "Hardware 6", "Hardware 7", "Hardware 8",
+            "Hardware 9", "RAM Chip (Up)", "RAM Chip (Down)", "Invisible Wall (Void)"
+        };
         this.setTile(rawTile);
+        this.niceName = names[(int) rawTile];
     }
-     /**
+
+    /**
      * Creates a Tile object from a byte
+     *
      * @param tile, Byte
      * @throws RuntimeException, When parameter tile is not within 0x0 and 0x28
      */
@@ -40,23 +61,33 @@ public class Tile {
         }
         this.rawTile = tile;
     }
+
     /**
-     * 
+     *
      * @return byte representation of the tile
      */
     public byte getTile() {
         return this.rawTile;
     }
-    
+
+    /**
+     * Returns the nicename of the tile
+     *
+     * @return
+     */
+    public String getNiceName() {
+        return this.niceName;
+    }
+
     @Override
     public boolean equals(Object o) {
-        if(this == o) {
+        if (this == o) {
             return true;
         }
-        if(this.getClass() != o.getClass() || o == null) {
+        if (this.getClass() != o.getClass() || o == null) {
             return false;
         }
-        Tile tile = (Tile)o;
+        Tile tile = (Tile) o;
         return (this.rawTile == tile.rawTile);
     }
 

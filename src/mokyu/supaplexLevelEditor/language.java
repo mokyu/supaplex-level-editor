@@ -49,6 +49,10 @@ public class language {
                 translation = getFromTag(language, ((JMenu) o).getName());
                 ((JMenu) o).setText(translation);
                 break;
+            case "javax.swing.JLabel":
+                translation = getFromTag(language, ((JLabel) o).getName());
+                ((JLabel) o).setText(translation);
+                break;
         }
     }
 
@@ -58,10 +62,10 @@ public class language {
             return tag + " " + language;
         } else {
             String result = translations.get(tag);
-            if(result != null) {
+            if (result != null) {
                 return result;
             }
-            return tag+ " " + language;
+            return tag + " " + language;
         }
     }
 
@@ -74,10 +78,10 @@ public class language {
      * @throws java.io.IOException Thrown when i fail to read a file.
      */
     public static void getTranslations() throws FileNotFoundException, IOException {
-        
+
         File dir = new File("languages");
         if (!dir.exists() || !dir.isDirectory()) {
-            System.out.println("Current working directory: "+ System.getProperty("user.dir"));
+            System.out.println("Current working directory: " + System.getProperty("user.dir"));
             throw new FileNotFoundException("Fatal error: Missing './languages' folder in our CWD");
         }
         File[] listing = dir.listFiles();

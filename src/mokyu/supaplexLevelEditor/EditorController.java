@@ -35,7 +35,7 @@ public class EditorController implements ActionListener {
         this.model = model;
     }
 
-    public void addView(EditorView view) {
+    public void setView(EditorView view) {
         if (this.view == null) {
             this.view = view;
             EventQueue.invokeLater(() -> {
@@ -82,7 +82,7 @@ public class EditorController implements ActionListener {
     }
     
     public void setPreferredLanguage(String language) {
-        
+        model.setProperty("language", language);
         model.fireChanged();
     }
 
