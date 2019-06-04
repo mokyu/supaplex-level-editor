@@ -22,25 +22,29 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.beans.*;
 /**
  *
  * @author Mokyu
  */
 public class Level {
-
+    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private Map<Point, Tile> level;
     private byte[] padding0;
     private byte gravity;
     private byte speedFixVersion;
     private byte[] rawName;
     private byte freezeZonks;
-    private byte RequiredInfontrons;
-    private byte GravitySwitchPorts;
+    private byte requiredInfontrons;
+    private byte gravitySwitchPorts;
     private byte[] specialPortDataRaw;
     private Map<Integer, GravitySwitchPort> specialPortData;
     private byte[] speedfixDemoInfo;
 
+    
+    public void addPropertyChangeListener(PropertyChangeListener pcl) {
+        pcs.addPropertyChangeListener(pcl);
+    }
     /**
      * Generates a completely fresh empty level.
      */
@@ -124,7 +128,9 @@ public class Level {
      * the coordinates stored in point
      */
     final public void setTile(Point point, Tile tile) {
+        Tile old = this.getTile(point);
         this.level.put(point, tile);
+        pcs.firePropertyChange("Level.level", 0, 1);
     }
 
     /**
@@ -133,11 +139,13 @@ public class Level {
      * @param value, boolean value, speaks for itself.
      */
     final public void setGravity(boolean value) {
+        byte old = this.gravity;
         if (value == true) {
             this.gravity = 0x1;
         } else {
             this.gravity = 0x0;
         }
+        pcs.firePropertyChange("Level.gravity", old, value);
     }
 
     /**
@@ -166,7 +174,9 @@ public class Level {
      * @param version Byte value. 0x20 by default.
      */
     final public void setSpeedFixVersion(byte version) {
+        byte old = getSpeedFixVersion();
         this.speedFixVersion = version;
+        pcs.firePropertyChange("Level.speedFixVersion", old, version);
     }
 
     /**
@@ -176,7 +186,7 @@ public class Level {
      * @return String containing the name of the level. This includes trailing
      * and leading space or dashes.
      */
-    final public String getName() {
+    final public String getName() { // problem: this gets called before it's initialized due to 
         return new String(this.rawName);
     }
 
@@ -194,6 +204,7 @@ public class Level {
         } else {
             this.rawName = newName.toUpperCase().getBytes(StandardCharsets.US_ASCII); // Supaplex only renders uppercase characters accurately
         }
+        pcs.firePropertyChange("Level.rawName", 0, 1);
 
     }
 
@@ -204,11 +215,13 @@ public class Level {
      * @param value, boolean value, speaks for itself.
      */
     final public void setFreezeZonks(boolean value) {
+        boolean old = getFreezeZonks();
         if (value == true) {
             this.freezeZonks = 0x2;
         } else {
             this.freezeZonks = 0x0;
         }
+        pcs.firePropertyChange("Level.freezeZonks", 0, 1);
     }
 
     /**
@@ -228,10 +241,12 @@ public class Level {
      * infotron on the level)
      */
     final public void setRequiredInfotrons(int infotrons) throws RuntimeException {
+        int old = getRequiredInfotrons();
         if (infotrons > 255 || infotrons < 0) {
             throw new RuntimeException("Invalid number of infotrons given. Expected value between 0 and 255");
         }
-        this.RequiredInfontrons = (byte) infotrons;
+        this.requiredInfontrons = (byte) infotrons;
+        pcs.firePropertyChange("Level.requiredInfotrons", 0, 1);
     }
 
     /**
@@ -241,7 +256,7 @@ public class Level {
      * being every single infotron on the level
      */
     final public int getRequiredInfotrons() {
-        return this.RequiredInfontrons & 0xFF;
+        return this.requiredInfontrons & 0xFF;
     }
 
     /**
@@ -251,10 +266,12 @@ public class Level {
      * number between 10 and 0
      */
     final public void setGravitySwitchPorts(int ports) throws RuntimeException {
+        int old = getGravitySwitchPorts();
         if (ports > 10 || ports < 0) {
             throw new RuntimeException("Invalid number of ports given. Expected value between 0 and 255");
         }
-        this.GravitySwitchPorts = (byte) ports;
+        this.gravitySwitchPorts = (byte) ports;
+        pcs.firePropertyChange("Level.gravitySwitchPorts", 0, 1);
     }
 
     /**
@@ -263,7 +280,7 @@ public class Level {
      * @return int , The amount of existing gravity switch ports
      */
     final public int getGravitySwitchPorts() {
-        return this.GravitySwitchPorts & 0xFF;
+        return this.gravitySwitchPorts & 0xFF;
     }
 
     /**
@@ -272,7 +289,9 @@ public class Level {
      * @param portData the port info
      */
     final public void setGravitySwitchPortData(int port, GravitySwitchPort portData) {
+        GravitySwitchPort old = getGravitySwitchPortData(port);
         this.specialPortData.put(port, portData);
+        pcs.firePropertyChange("Level.specialPortData", 0, 1);
     }
 
     /**
@@ -298,10 +317,12 @@ public class Level {
      * @throws RuntimeException
      */
     final public void setSpeedFixDemoInfo(byte[] data) throws RuntimeException {
+        byte[] old = getSpeedFixDemoInfo();
         if (data.length != 4) {
             throw new RuntimeException("Expected 4 bytes but invalid amount given");
         }
         this.speedfixDemoInfo = data;
+        pcs.firePropertyChange("Level.speedfixDemoInfo", 0, 1);
     }
 
     /**
@@ -326,8 +347,8 @@ public class Level {
             stream.write(this.speedFixVersion);
             stream.write(this.rawName);
             stream.write(this.freezeZonks);
-            stream.write(this.RequiredInfontrons);
-            stream.write(this.GravitySwitchPorts);
+            stream.write(this.requiredInfontrons);
+            stream.write(this.gravitySwitchPorts);
             stream.write(this.specialPortDataRaw);
             stream.write(this.speedfixDemoInfo);
         } catch (IOException e) {
@@ -359,8 +380,8 @@ public class Level {
         this.speedFixVersion = level[1445];
         this.rawName = Arrays.copyOfRange(level, 1446, 1469);
         this.freezeZonks = level[1469];
-        this.RequiredInfontrons = level[1470];
-        this.GravitySwitchPorts = level[1471];
+        this.requiredInfontrons = level[1470];
+        this.gravitySwitchPorts = level[1471];
         this.specialPortData = new HashMap<>();
         this.specialPortDataRaw = Arrays.copyOfRange(level, 1472, 1532);
         for (int i = 1472; i < 1532; i += 6) {

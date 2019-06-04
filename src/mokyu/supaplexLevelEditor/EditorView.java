@@ -19,7 +19,8 @@ package mokyu.supaplexLevelEditor;
 import mokyu.libsupaplex.*;
 import javax.swing.*;
 import java.awt.*;
-import javax.swing.border.BevelBorder;
+import java.awt.event.*;
+import javax.swing.border.*;
 import javax.swing.Box;
 import java.util.*;
 
@@ -30,16 +31,30 @@ import java.util.*;
 public class EditorView extends javax.swing.JFrame {
 
     private EditorController controller;
+    private EditorModel model;
 
-    public EditorView(EditorController controller) {
+    public EditorView(EditorController controller, EditorModel model) {
         this.controller = controller;
+        this.model = model;
         init();
     }
 
     private void init() {
+        this.labels = new HashMap<>();
+        this.buttons = new HashMap<>();
+        this.icons = new HashMap<>();
+        this.dropdowns = new HashMap<>();
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setTitle("Supaplex Level Editor");
         this.setMinimumSize(new Dimension(800, 600));
+        this.addMouseListener(new MouseAdapter() { // to reliably trigger the (un)focusevent on JTextField
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                JFrame clicked = (JFrame) e.getSource();
+                clicked.requestFocusInWindow();
+            }
+        });
+
         setLayout(new BorderLayout());
 
         // Create menubar
@@ -48,16 +63,26 @@ public class EditorView extends javax.swing.JFrame {
         // create container frames 
         initFrames();
 
-        // create and initialize other components
-        initElements();
+        // Initialize status bar
+        initStatusBar();
 
-        pack();
+        // Initialize level data window
+        initLevelData();
+
+        // set object translations
+        labels.keySet().forEach((String key) -> {
+            language.setComponentTranslation(controller.getPreferredLanguage(), labels.get(key));
+        });
+        buttons.keySet().forEach((String key) -> {
+            language.setComponentTranslation(controller.getPreferredLanguage(), buttons.get(key));
+        });
+
     }
 
     private void initMenuBar() {
         JMenuBar menu = new JMenuBar();
         JMenu fileMenu, viewMenu, helpMenu;
-        JMenuItem newLevel, newLevelCol, loadLevel, loadLevelCol, saveLevel, saveLevelCol, exit, currZoom, incZoom, decZoom, resZoom, about;
+        JMenuItem menuItem;
         fileMenu = new JMenu();
         fileMenu.setName("menu_file");
         language.setComponentTranslation(controller.getPreferredLanguage(), fileMenu);
@@ -68,57 +93,59 @@ public class EditorView extends javax.swing.JFrame {
         helpMenu.setName("menu_help");
         language.setComponentTranslation(controller.getPreferredLanguage(), helpMenu);
 
-        newLevel = new JMenuItem();
-        newLevel.setName("menu_file_newLevel");
-        fileMenu.add(newLevel);
-        newLevelCol = new JMenuItem();
-        newLevelCol.setName("menu_file_newLevelCol");
-        fileMenu.add(newLevelCol);
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_file_newLevelCol");                                  // New level collection
+        fileMenu.add(menuItem);
 
-        fileMenu.addSeparator();
+        fileMenu.addSeparator();                                                // --------------------
 
-        loadLevel = new JMenuItem();
-        loadLevel.setName("menu_file_loadLevel");
-        fileMenu.add(loadLevel);
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_file_loadLevelCol");                                 // Load level collection
+        fileMenu.add(menuItem);
 
-        loadLevelCol = new JMenuItem();
-        loadLevelCol.setName("menu_file_loadLevelCol");
-        fileMenu.add(loadLevelCol);
+        fileMenu.addSeparator();                                                // --------------------
 
-        fileMenu.addSeparator();
-        saveLevel = new JMenuItem();
-        saveLevel.setName("menu_file_saveLevel");
-        fileMenu.add(saveLevel);
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_file_saveLevelCol");                                 // Save Level collection
+        fileMenu.add(menuItem);
 
-        saveLevelCol = new JMenuItem();
-        saveLevelCol.setName("menu_file_saveLevelCol");
-        fileMenu.add(saveLevelCol);
+        fileMenu.addSeparator();                                                // --------------------
 
-        fileMenu.addSeparator();
-        exit = new JMenuItem();
-        exit.setName("menu_file_exit");
-        fileMenu.add(exit);
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_file_exportLevel");                                  // Export current level
+        fileMenu.add(menuItem);
 
-        currZoom = new JMenuItem();
-        currZoom.setName("menu_view_currZoom");
-        viewMenu.add(currZoom);
-        viewMenu.addSeparator();
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_file_importLevel");                                  // Import current level
+        fileMenu.add(menuItem);
 
-        incZoom = new JMenuItem();
-        incZoom.setName("menu_view_decZoom");
-        viewMenu.add(incZoom);
+        fileMenu.addSeparator();                                                // --------------------
 
-        decZoom = new JMenuItem();
-        decZoom.setName("menu_view_decZoom");
-        viewMenu.add(decZoom);
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_file_exit");                                         // Exit
+        fileMenu.add(menuItem);
 
-        resZoom = new JMenuItem();
-        resZoom.setName("menu_view_resZoom");
-        viewMenu.add(resZoom);
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_view_currZoom");                                     // Current Zoom Level
+        viewMenu.add(menuItem);
 
-        about = new JMenuItem();
-        about.setName("menu_help_about");
-        helpMenu.add(about);
+        viewMenu.addSeparator();                                                // --------------------
+
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_view_decZoom");                                      // Decrease Zoom Level
+        viewMenu.add(menuItem);
+
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_view_incZoom");                                      // Increase Zoom level
+        viewMenu.add(menuItem);
+
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_view_resZoom");                                      // Reset Zoom level
+        viewMenu.add(menuItem);
+
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_help_about");                                        // About
+        helpMenu.add(menuItem);
 
         menu.add(fileMenu);
         menu.add(viewMenu);
@@ -153,7 +180,7 @@ public class EditorView extends javax.swing.JFrame {
         toolContainer = new JPanel();
         toolContainer.setBorder(BorderFactory.createTitledBorder(language.getFromTag(controller.getPreferredLanguage(), "panel_tools")));
 
-        toolContainer.setPreferredSize(new Dimension(100, 768));
+        toolContainer.setPreferredSize(new Dimension(175, 768));
         add(toolContainer, BorderLayout.WEST);
 
         editorContainer = new JPanel();
@@ -173,9 +200,8 @@ public class EditorView extends javax.swing.JFrame {
         add(statusBar, BorderLayout.SOUTH);
     }
 
-    private void initElements() {
+    private void initStatusBar() {
         labels = new HashMap<>();
-        buttons = new HashMap<>();
         //TODO: initiate buttons, and hook up to controller
         // initiate labels and such
         // and look into the scrollable frame
@@ -187,6 +213,7 @@ public class EditorView extends javax.swing.JFrame {
         x.setName("label_statusBar_xCoord");
         statusBar.add(x);
         labels.put(x.getName(), x);
+        x.setVisible(false);
         language.setComponentTranslation(controller.getPreferredLanguage(), x);
 
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -195,6 +222,7 @@ public class EditorView extends javax.swing.JFrame {
         x.setName("label_statusBar_yCoord");
         statusBar.add(x);
         labels.put(x.getName(), x);
+        x.setVisible(false);
         language.setComponentTranslation(controller.getPreferredLanguage(), x);
 
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -232,13 +260,159 @@ public class EditorView extends javax.swing.JFrame {
         x.setName("label_statusBar_selectedTile");
         labels.put(x.getName(), x);
         statusBar.add(x);
+    }
 
-        statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
+    private void initLevelData() {
+        JPanel panel = levelSettingsContainer;
+        JPanel childPanel;
+        JLabel label;
+        JButton button;
+        JCheckBox checkBox;
+        JComboBox comboBox;
+        JTextField textField;
 
-        // apply proper translations
-        for (String key : labels.keySet()) {
-            language.setComponentTranslation(controller.getPreferredLanguage(), labels.get(key));
-        }
+        panel.setLayout(new FlowLayout(FlowLayout.LEFT));
+        GridBagConstraints pc = new GridBagConstraints();
+        pc.anchor = GridBagConstraints.FIRST_LINE_START;
+        pc.fill = GridBagConstraints.EAST;
+        pc.weightx = 1;
+        pc.weighty = 1;
+        GridBagConstraints c = new GridBagConstraints();
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.anchor = GridBagConstraints.NORTHWEST;
+        childPanel = new JPanel(new GridBagLayout());
+        childPanel.setBorder(new EtchedBorder());
+
+        //<editor-fold defaultstate="collapsed" desc="Level selection">
+        label = new JLabel();
+        label.setName("label_levelData_selectLevelSlot");
+        label.setPreferredSize(new Dimension(100, 20));
+        c.weightx = 0.5;
+        c.weighty = 0.5;
+        c.gridx = 0;
+        c.gridy = 0;
+
+        childPanel.add(label, c);
+        labels.put(label.getName(), label);
+
+        comboBox = new JComboBox(controller.getLevelList().toArray());
+        comboBox.setName("combobox_levelData_selectLevelSlot");
+        comboBox.setPreferredSize(new Dimension(200, 20));
+        comboBox.setSelectedIndex(controller.getCurrentLevelSLot());
+        dropdowns.put(comboBox.getName(), comboBox);
+        comboBox.addActionListener(controller);
+        c.gridx = 1;
+        c.gridy = 0;
+        childPanel.add(comboBox, c);
+        //</editor-fold>
+
+        //<editor-fold defaultstate="collapsed" desc="Level Name editing">
+        c.insets = new Insets(20, 0, 0, 0); // top padding
+        c.gridx = 0;
+        c.gridy = 1;
+        label = new JLabel();
+        label.setName("label_levelData_levelName");
+        label.setPreferredSize(new Dimension(100, 20));
+        childPanel.add(label, c);
+        labels.put(label.getName(), label);
+
+        c.gridx = 1;
+        c.gridy = 1;
+
+        textField = new JTextField(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getName());
+        textField.setName("textField_levelData_levelName");
+        textField.setPreferredSize(new Dimension(200, 20));
+        textField.addFocusListener(controller);
+        childPanel.add(textField, c);
+        //</editor-fold>
+
+        panel.add(childPanel, BorderLayout.EAST);
+
+        childPanel = new JPanel(new GridBagLayout());
+        childPanel.setBorder(new EtchedBorder());
+
+        //<editor-fold defaultstate="collapsed" desc="Required Infotrons">
+        c = new GridBagConstraints();
+        c.anchor = GridBagConstraints.NORTHWEST;
+        c.weightx = 0.5;
+        c.weighty = 0.5;
+        c.gridx = 0;
+        c.gridy = 0;
+
+        label = new JLabel();
+        label.setName("label_levelData_requiredInfotrons");
+        label.setPreferredSize(new Dimension(150, 20));
+        labels.put(label.getName(), label);
+        childPanel.add(label, c);
+
+        textField = new JTextField(Integer.toString(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getRequiredInfotrons()));
+        textField.setName("textField_levelData_requiredInfotrons");
+        textField.setPreferredSize(new Dimension(30, 20));
+        textField.addFocusListener(controller);
+        c.gridx = 1;
+        c.gridy = 0;
+        childPanel.add(textField, c);
+        //</editor-fold>
+
+        //<editor-fold defaultstate="collapsed" desc="Toggle level gravity">
+        label = new JLabel();
+        label.setName("label_levelData_gravity");
+        label.setPreferredSize(new Dimension(150, 20));
+        labels.put(label.getName(), label);
+        c.gridx = 0;
+        c.gridy = 1;
+        childPanel.add(label, c);
+
+        checkBox = new JCheckBox("", model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getGravity());
+        checkBox.addItemListener(controller);
+        checkBox.setName("checkbox_levelData_gravity");
+        c.gridx = 1;
+        c.gridy = 1;
+        childPanel.add(checkBox, c);
+        //</editor-fold>
+
+        //<editor-fold defaultstate="collapsed" desc="Toggle zonk freeze">
+        label = new JLabel();
+        label.setName("label_levelData_freezeZonks");
+        label.setPreferredSize(new Dimension(100, 20));
+        c.weightx = 0.5;
+        c.weighty = 0.5;
+        c.gridx = 0;
+        c.gridy = 2;
+        childPanel.add(label, c);
+        labels.put(label.getName(), label);
+
+        checkBox = new JCheckBox("", model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getFreezeZonks());
+        checkBox.addItemListener(controller);
+        checkBox.setName("checkbox_levelData_freezeZonks");
+        c.gridx = 1;
+        c.gridy = 2;
+        childPanel.add(checkBox, c);
+        
+        //</editor-fold>
+        
+        panel.add(childPanel);
+        
+        childPanel = new JPanel(new GridBagLayout());
+        childPanel.setBorder(new EtchedBorder());
+        //<editor-fold defaultstate="collapsed" desc="Special port selection">
+        // create the comboboxes
+        //</editor-fold>
+        //<editor-fold defaultstate="collapsed" desc="Special port flags">
+        // create the checkboxes + 1 
+        //</editor-fold>
+        //panel.add(childPanel);
+    }
+
+    /**
+     * Called when model has changed and the UI needs to be updated. Thread Safe
+     */
+    public void refresh() {
+        this.getContentPane().removeAll();
+        init();
+        this.repaint();
+        System.out.println("GUI refresh");
+
     }
 
     /**
@@ -330,7 +504,7 @@ public class EditorView extends javax.swing.JFrame {
     }
 
     /**
-     * Show or hide the missing murphy warning. (Thread safe)
+     * Show or hide the missing Murphy warning. (Thread safe)
      *
      * @param value, toggles visibility of the warning text
      */
@@ -351,6 +525,38 @@ public class EditorView extends javax.swing.JFrame {
         });
     }
 
+    /**
+     * Spawn a message box, not thread safe
+     *
+     * @param type "ERROR", "WARNING" and any other value for a regular info
+     * box.
+     * @param content
+     */
+    public void spawnMsgBox(String type, String content) {
+        switch (type) {
+            case "ERROR":
+                JOptionPane.showMessageDialog(null, content, "Error", JOptionPane.ERROR_MESSAGE);
+                break;
+            case "WARNING":
+                JOptionPane.showMessageDialog(null, content, "Warning", JOptionPane.WARNING_MESSAGE);
+                break;
+            default:
+                JOptionPane.showMessageDialog(null, content, "Info", JOptionPane.INFORMATION_MESSAGE);
+                break;
+        }
+
+    }
+
+    /**
+     * Spawn Yes No Cancel message box
+     *
+     * @param msg the message to show
+     * @return boolean, true when user clicks yes. False on any other action
+     */
+    public boolean spawnChoiceBox(String msg) {
+        return JOptionPane.showConfirmDialog(null, msg) == JOptionPane.YES_OPTION;
+    }
+
     private JPanel toolContainer;
     private JPanel editorContainer;
     private JPanel levelSettingsContainer;
@@ -358,4 +564,7 @@ public class EditorView extends javax.swing.JFrame {
     private HashMap<String, JLabel> labels;
     private HashMap<String, JButton> buttons;
     private HashMap<Tile, ImageIcon> icons;
+    private HashMap<String, JComboBox> dropdowns;
+    private HashMap<String, JSpinner> spinners;
+    private HashMap<String, JCheckBox> checkboxes;
 }

@@ -16,9 +16,6 @@
  */
 package mokyu.supaplexLevelEditor;
 
-import mokyu.libsupaplex.*;
-import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 /**
  *
  * @author Mokyu
@@ -35,8 +32,10 @@ public class Editor {
             e.printStackTrace();
         }
         final EditorModel model = new EditorModel();
+        model.init();
         final EditorController controller = new EditorController(model);
-        final EditorView view = new EditorView(controller);
+        model.addPropertyChangeListener(controller);
+        final EditorView view = new EditorView(controller, model);
         controller.setView(view);
         view.setIcons(iconGenerator.getTilesetFromFile("resources/tiles.png"));
     }
