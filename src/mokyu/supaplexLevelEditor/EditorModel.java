@@ -24,13 +24,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.logging.Logger;
+import java.beans.*;
 import mokyu.libsupaplex.*;
 
 /**
+ * Don't forget to call init() after construction
  *
  * @author Mokyu
  */
-public class EditorModel {
+public class EditorModel implements PropertyChangeListener {
+
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
     // listener 
     public interface Listener {
@@ -39,13 +43,13 @@ public class EditorModel {
     }
     private final List<Listener> listeners = new ArrayList<>();
 
-    public void addListener(EditorModel.Listener view) {
-        listeners.remove(view);
-        listeners.add(view);
+    public void addListener(EditorModel.Listener listener) {
+        listeners.remove(listener);
+        listeners.add(listener);
     }
 
-    public void removeListener(EditorModel.Listener view) {
-        listeners.remove(view);
+    public void removeListener(EditorModel.Listener listener) {
+        listeners.remove(listener);
     }
 
     public void fireChanged() {
@@ -54,13 +58,47 @@ public class EditorModel {
         });
     }
 
+    @Override
+    public void propertyChange(PropertyChangeEvent e) {
+        // pass property change to Controller
+        pcs.firePropertyChange(e);
+    }
+    /**
+     * Register controller to this.
+     * @param e Change event
+     */
+    public void addPropertyChangeListener(PropertyChangeListener e) {
+        pcs.addPropertyChangeListener(e);
+    }
+
     // properties
     private Supaplex supaplex;
     private Properties properties;
+    private boolean dataChanged;
+    
+    // UI State related stuff
+    private Integer currentLevelSlot;
 
+    /**
+     * Change level slot, fired property change and notifies the controller.
+     * @param currentLevelSlot 
+     */
+    public void setCurrentLevelSlot(Integer currentLevelSlot) {
+        Integer old = getCurrentLevelSlot();
+        this.currentLevelSlot = currentLevelSlot;
+        pcs.firePropertyChange("currentLevelSlot", old, currentLevelSlot);
+    }
+
+    public Integer getCurrentLevelSlot() {
+        return currentLevelSlot;
+    }
+    
     public EditorModel() {
         supaplex = new Supaplex();
+        supaplex.init();
         properties = new Properties();
+        dataChanged = false;
+        currentLevelSlot = 1;
         File props = new File("config.properties");
         if (props.exists()) {
             InputStream fstream;
@@ -79,16 +117,67 @@ public class EditorModel {
             setProperty("language", "EN");
         }
     }
+
+    /**
+     * Register objects to the PCS post construction
+     */
+    public void init() {
+        supaplex.addPropertyChangeListener(this);
+    }
+
+    /**
+     * Set to true when there are changes to our data
+     *
+     * @return
+     */
+    public boolean getDataChanged() {
+        return this.dataChanged;
+    }
+
+    public void setDataChanged(boolean value) {
+        this.dataChanged = value;
+    }
+
+    /**
+     * Overwrite existing level collection
+     *
+     * @param supaplex Supaplex object (for if you load a collection from a
+     * file) or null to create an empty collection
+     */
+    public void setLevelCollection(Supaplex supaplex) {
+        if (supaplex == null) {
+            this.supaplex = new Supaplex();
+        } else {
+            this.supaplex = supaplex;
+        }
+        pcs.firePropertyChange("LevelCollection", 0, 1);
+    }
+
+    /**
+     * Retrieve Supaplex object. Modifying the return result requires calling
+     * setDataChanged(true) and fireChanged() manually
+     *
+     * @return The current Supaplex object.
+     */
+    public Supaplex getLevelCollection() {
+        return this.supaplex;
+    }
+
+    ;
+
     /**
      * Get configuration property from config.properties
+     *
      * @param key
      * @return String or null when key not found
      */
     public String getProperty(String key) {
         return properties.getProperty(key);
     }
+
     /**
-     *  Set configuration property in config.properties
+     * Set configuration property in config.properties
+     *
      * @param key the key to set
      * @param value they value belonging to the key
      */
@@ -101,7 +190,7 @@ public class EditorModel {
         } catch (IOException ex) {
             Logger.getLogger(EditorModel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        fireChanged();
+        pcs.firePropertyChange("Properties", 0, 1);
     }
 
 }

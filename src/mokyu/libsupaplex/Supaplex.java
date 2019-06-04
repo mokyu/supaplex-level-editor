@@ -21,20 +21,48 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.io.*;
+import java.beans.*;
 
 /**
  *
  * @author Mokyu
  */
-public class Supaplex extends TileInfo {
-    private Map<Integer, Level> levels;
+public class Supaplex extends TileInfo implements PropertyChangeListener {
 
+    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
+    private final Map<Integer, Level> levels;
+
+    /**
+     * Generate a Supaplex object with empty levels.
+     * To prevent leaking `this` you have to manually call Supaplex.init() after creation;
+     */
     public Supaplex() {
         this.levels = new HashMap<>();
+        for(int i = 0; i < 111; i++) {
+            this.levels.put(i, new Level());
+        }
     }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent e) {
+        pcs.firePropertyChange(e);
+    }
+
+    /**
+     * Register your parent class here (e.g. a Model implementing
+     * PropertyChangeListener)
+     *
+     * @param e your class
+     */
+    public void addPropertyChangeListener(PropertyChangeListener e) {
+        pcs.addPropertyChangeListener(e);
+    }
+
     /**
      * Load a level pack from a file.
-     * @param uri Path to a valid LEVELS.DAT file. These are *not* individual levels (1536 byte .SP files)
+     *
+     * @param uri Path to a valid LEVELS.DAT file. These are *not* individual
+     * levels (1536 byte .SP files)
      * @throws IOException General I/O file errors
      * @throws Exception When file size is not exactly 170496 bytes in size
      */
@@ -47,11 +75,19 @@ public class Supaplex extends TileInfo {
         }
         for (int i = 0; i < 111; i++) {
             byte[] lvl = Arrays.copyOfRange(file, i * 1536, i * 1536 + 1536);
-            this.levels.put(i, new Level(lvl));
+            Level l = new Level(lvl);
+            l.addPropertyChangeListener(this);
+            this.levels.put(i, l);
+
         }
+        pcs.firePropertyChange("Supaplex.levels", 0, 1); // we can't compare an old hashmap with a new hashmap so just compare it with a new empty one
+
     }
+
     /**
-     * Save level pack to a file, please note that this does not create a LEVELS.LST file
+     * Save level pack to a file, please note that this does not create a
+     * LEVELS.LST file
+     *
      * @param uri Path to where to save the level pack
      * @throws IOException General file I/O failure
      */
@@ -64,20 +100,37 @@ public class Supaplex extends TileInfo {
         byte[] levelPack = stream.toByteArray();
         Files.write(path, levelPack);
     }
+
     /**
      * Use this to get a specific level
+     *
      * @param index Selects the level (111 total, 0-110)
-     * @return returns a Level object or null when an invalid integer is supplied or no level pack is loaded
+     * @return returns a Level object or null when an invalid integer is
+     * supplied or no level pack is loaded
      */
     public Level getLevel(int index) {
         return this.levels.get(index);
     }
+
     /**
-     * Use this to update a specific level
+     * Use this to update a specific level in the level set. This also
+     * automatically adds the level to this propertyChangeListener
+     *
      * @param index The level you wish to override (111 total, 0-110)
      * @param level Level object
      */
     public void setLevel(int index, Level level) {
+        level.addPropertyChangeListener(this);
+        Level old = getLevel(index);
         this.levels.put(index, level);
+        pcs.firePropertyChange("Supaplex.levels", 0, 1);
+    }
+    /**
+     * Call this when the Supaplex() instructor is used to properly assign listeners
+     */
+    public void init() {
+        for(int i = 0; i < 111; i++) {
+            this.levels.get(i).addPropertyChangeListener(this);
+        }
     }
 }

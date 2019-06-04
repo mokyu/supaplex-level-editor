@@ -70,7 +70,7 @@ public class language {
     }
 
     /**
-     * Parses all json files in the ./translations folder and populates the
+     * Parses all properties files in the ./translations folder and populates the
      * library hashmap
      *
      * @throws java.io.FileNotFoundException Throws when ./languages folder does
