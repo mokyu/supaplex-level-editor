@@ -46,7 +46,7 @@ public class EditorView extends javax.swing.JFrame {
         this.dropdowns = new HashMap<>();
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setTitle("Supaplex Level Editor");
-        this.setMinimumSize(new Dimension(800, 600));
+        this.setMinimumSize(new Dimension(940, 540));
         this.addMouseListener(new MouseAdapter() { // to reliably trigger the (un)focusevent on JTextField
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -388,20 +388,111 @@ public class EditorView extends javax.swing.JFrame {
         c.gridx = 1;
         c.gridy = 2;
         childPanel.add(checkBox, c);
-        
+
         //</editor-fold>
-        
         panel.add(childPanel);
-        
+
         childPanel = new JPanel(new GridBagLayout());
         childPanel.setBorder(new EtchedBorder());
+
+        // get current gravity switch port
+        GravitySwitchPort port = model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getGravitySwitchPortData(controller.getCurrentSpecialPort());
+
         //<editor-fold defaultstate="collapsed" desc="Special port selection">
+        label = new JLabel();
+        label.setName("label_levelData_gravitySwitchPortCount");
+        label.setPreferredSize(new Dimension(120, 20));
+        labels.put(label.getName(), label);
+        c.gridx = 0;
+        c.gridy = 0;
+        childPanel.add(label, c);
+
+        textField = new JTextField(Integer.toString(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getGravitySwitchPorts()));
+        textField.setName("textField_levelData_gravitySwitchPortCount");
+        textField.setPreferredSize(new Dimension(30, 20));
+        textField.addFocusListener(controller);
+        c.gridx = 1;
+        c.gridy = 0;
+        childPanel.add(textField, c);
+
+        label = new JLabel();
+        label.setName("label_levelData_gravityPortSelection");
+        label.setPreferredSize(new Dimension(100, 20));
+        labels.put(label.getName(), label);
+        c.gridx = 2;
+        c.gridy = 0;
+        childPanel.add(label, c);
+
+        textField = new JTextField(Integer.toString(controller.getCurrentSpecialPort()));
+        textField.setName("textField_levelData_gravitySwitchPortSelection");
+        textField.setPreferredSize(new Dimension(30, 20));
+        textField.addFocusListener(controller);
+        c.gridx = 3;
+        c.gridy = 0;
+        childPanel.add(textField, c);
+
+        label = new JLabel();
+        label.setName("label_levelData_gravityPortX");
+        label.setPreferredSize(new Dimension(20, 20));
+        labels.put(label.getName(), label);
+        c.gridx = 4;
+        c.gridy = 0;
+        childPanel.add(label, c);
+
+        textField = new JTextField(Integer.toString(port.getX()));
+        textField.setName("textField_levelData_gravitySwitchPortX");
+        textField.setPreferredSize(new Dimension(30, 20));
+        textField.addFocusListener(controller);
+        c.gridx = 5;
+        c.gridy = 0;
+        childPanel.add(textField, c);
+
+        label = new JLabel();
+        label.setName("label_levelData_gravityPortY");
+        label.setPreferredSize(new Dimension(20, 20));
+        labels.put(label.getName(), label);
+        c.gridx = 6;
+        c.gridy = 0;
+        childPanel.add(label, c);
+
+        textField = new JTextField(Integer.toString(port.getY()));
+        textField.setName("textField_levelData_gravitySwitchPortY");
+        textField.setPreferredSize(new Dimension(30, 20));
+        textField.addFocusListener(controller);
+        c.gridx = 7;
+        c.gridy = 0;
+        childPanel.add(textField, c);
+
         // create the comboboxes
         //</editor-fold>
         //<editor-fold defaultstate="collapsed" desc="Special port flags">
-        // create the checkboxes + 1 
+        // create the checkboxes
+        checkBox = new JCheckBox(language.getFromTag(controller.getPreferredLanguage(), "checkBox_levelData_specialPortToggleGravity"), port.getGravity());
+        checkBox.addItemListener(controller);
+        checkBox.setName("checkBox_levelData_specialPortToggleGravity");
+        c.insets = new Insets(20, 0, 0, 0); // top padding
+        c.fill =  GridBagConstraints.REMAINDER;
+        c.weightx = 0.0;
+        c.gridwidth = 3;
+        c.gridx = 0;
+        c.gridy = 1;
+        childPanel.add(checkBox, c);
+
+        checkBox = new JCheckBox(language.getFromTag(controller.getPreferredLanguage(), "checkBox_levelData_specialPortToggleFreezeEnemy"), port.getFreezeEnemy());
+        checkBox.addItemListener(controller);
+        checkBox.setName("checkBox_levelData_specialPortToggleFreezeEnemy");
+        c.gridx = 1;
+        c.gridy = 1;
+        childPanel.add(checkBox, c);
+        
+        checkBox = new JCheckBox(language.getFromTag(controller.getPreferredLanguage(), "checkBox_levelData_specialPortToggleFreezeZonks"), port.getFreezeZonks());
+        checkBox.addItemListener(controller);
+        checkBox.setName("checkBox_levelData_specialPortToggleFreezeZonks");
+        c.gridx = 3;
+        c.gridy = 1;
+        childPanel.add(checkBox, c);
         //</editor-fold>
-        //panel.add(childPanel);
+        panel.add(childPanel);
     }
 
     /**

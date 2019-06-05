@@ -78,6 +78,24 @@ public class EditorModel implements PropertyChangeListener {
     
     // UI State related stuff
     private Integer currentLevelSlot;
+    private Integer currentSpecialPort;
+
+    /**
+     * Set current selected special port for modification, triggers property change
+     * @param currentSpecialPort 
+     */
+    public void setCurrentSpecialPort(Integer currentSpecialPort) {
+        Integer old = getCurrentSpecialPort();
+        this.currentSpecialPort = currentSpecialPort;
+        pcs.firePropertyChange("currentSpecialPort", old, currentSpecialPort);
+    }
+    /**
+     * Return current special port
+     * @return 
+     */
+    public Integer getCurrentSpecialPort() {
+        return currentSpecialPort;
+    }
 
     /**
      * Change level slot, fired property change and notifies the controller.
@@ -99,6 +117,7 @@ public class EditorModel implements PropertyChangeListener {
         properties = new Properties();
         dataChanged = false;
         currentLevelSlot = 1;
+        currentSpecialPort = 1;
         File props = new File("config.properties");
         if (props.exists()) {
             InputStream fstream;

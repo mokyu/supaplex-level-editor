@@ -22,12 +22,15 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.ByteBuffer;
 import java.beans.*;
+
 /**
  *
  * @author Mokyu
  */
 public class Level {
+
     private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private Map<Point, Tile> level;
     private byte[] padding0;
@@ -41,10 +44,10 @@ public class Level {
     private Map<Integer, GravitySwitchPort> specialPortData;
     private byte[] speedfixDemoInfo;
 
-    
     public void addPropertyChangeListener(PropertyChangeListener pcl) {
         pcs.addPropertyChangeListener(pcl);
     }
+
     /**
      * Generates a completely fresh empty level.
      */
@@ -68,7 +71,9 @@ public class Level {
         this.specialPortData = new HashMap<>();
         this.speedfixDemoInfo = new byte[4];
         Arrays.fill(this.speedfixDemoInfo, (byte) 0x0);
-        
+        for (int i = 1; i <= 10; i++) {
+            this.specialPortData.put(i, new GravitySwitchPort(0, 0, false, false, false, (byte) 0x0));
+        }
     }
 
     /**
@@ -285,6 +290,7 @@ public class Level {
 
     /**
      * Sets gravity switch port data
+     *
      * @param port the port number which to update
      * @param portData the port info
      */
@@ -296,6 +302,7 @@ public class Level {
 
     /**
      * Get Gravity switch port data
+     *
      * @param port
      * @return GravitySwitchPort object containing port data
      */
@@ -305,6 +312,7 @@ public class Level {
 
     /**
      * Metadata used by speedfix versions of the game
+     *
      * @return byte array (4 bytes)
      */
     final public byte[] getSpeedFixDemoInfo() {
@@ -313,6 +321,7 @@ public class Level {
 
     /**
      * This sets metadata used by SpeedFix (4 bytes)
+     *
      * @param byte array (4 bytes)
      * @throws RuntimeException
      */
@@ -357,8 +366,10 @@ public class Level {
 
         return stream.toByteArray();
     }
+
     /**
      * Load level from byte array
+     *
      * @param level 1536 bytes
      */
     final public void fromByteArray(byte[] level) {
@@ -384,14 +395,13 @@ public class Level {
         this.gravitySwitchPorts = level[1471];
         this.specialPortData = new HashMap<>();
         this.specialPortDataRaw = Arrays.copyOfRange(level, 1472, 1532);
+        int counter = 1;
         for (int i = 1472; i < 1532; i += 6) {
-            //ByteBuffer bb = ByteBuffer.wrap(level, i, 2);
-            // Currently not sure on how to do this. Ignore special ports for nwo.
-            //int v = (Short.toUnsignedInt(bb.getShort()));
-            //System.out.format("i=%d -> 0x%02x 0x%02x -> %d -> x%d y%d\n",i, level[i], level[i+1], v, (v & 0xFFFF) / 256, (v & 0xFFFF) % 256);
-
-            //SpecialPort sp = new SpecialPort(0, 0, level[i + 2] == 0x1, level[i + 3] == 0x2, level[i + 4] == 0x1, level[i + 5]);
-            //this.specialPortData.put(count, sp);
+            ByteBuffer bb = ByteBuffer.wrap(level, i, 2);
+            int v = bb.getShort();
+            GravitySwitchPort sp = new GravitySwitchPort(v, level[i + 2] == 0x1, level[i + 3] == 0x2, level[i + 4] == 0x1, level[i + 5]);
+            this.specialPortData.put(counter, sp);
+            counter++;
         }
         this.speedfixDemoInfo = Arrays.copyOfRange(level, 1532, 1536);
     }

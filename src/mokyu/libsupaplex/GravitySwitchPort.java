@@ -24,20 +24,78 @@ public class GravitySwitchPort {
 
     private int x;
     private int y;
-    public boolean gravity;
-    public boolean freezeZonks;
-    public boolean freezeEnemy;
-    public byte padding;
+    private boolean gravity;
+    private boolean freezeZonks;
+    private boolean freezeEnemy;
+    private byte padding;
+
+    /**
+     * Generate gravity switch port based on x,y coordinates
+     *
+     * @param x
+     * @param y
+     * @param gravity
+     * @param freezeZonks
+     * @param freezeEnemy
+     * @param padding
+     * @throws RuntimeException
+     */
     public GravitySwitchPort(int x, int y, boolean gravity, boolean freezeZonks, boolean freezeEnemy, byte padding) throws RuntimeException {
-        if (x >= 60 || x < 0 || y >= 24 || y < 0) {
+        /*if (x >= 60 || x < 0 || y >= 24 || y < 0) {
             throw new RuntimeException("Invalid coordinates given. Expected x value between 0 and 60 and y value between 0 and 24.");
-        }
+        }*/
         this.x = x;
         this.y = y;
         this.gravity = gravity;
         this.freezeZonks = freezeZonks;
         this.freezeEnemy = freezeEnemy;
         this.padding = padding;
+    }
+
+    public boolean getGravity() {
+        return gravity;
+    }
+
+    public void setGravity(boolean gravity) {
+        this.gravity = gravity;
+    }
+
+    public boolean getFreezeZonks() {
+        return freezeZonks;
+    }
+
+    public void setFreezeZonks(boolean freezeZonks) {
+        this.freezeZonks = freezeZonks;
+    }
+
+    public boolean getFreezeEnemy() {
+        return freezeEnemy;
+    }
+
+    public void setFreezeEnemy(boolean freezeEnemy) {
+        this.freezeEnemy = freezeEnemy;
+    }
+
+    public byte getPadding() {
+        return padding;
+    }
+
+    public void setPadding(byte padding) {
+        this.padding = padding;
+    }
+
+    /**
+     * Generate gravity switch port based on raw coordinate value directly from
+     * *.SP/*.DAT files
+     *
+     * @param location 16 bit Big Endian unsigned integer
+     * @param gravity
+     * @param freezeZonks
+     * @param freezeEnemy
+     * @param padding
+     */
+    public GravitySwitchPort(Integer location, boolean gravity, boolean freezeZonks, boolean freezeEnemy, byte padding) {
+        this(location % 60 / 2, location / 60 / 2, gravity, freezeZonks, freezeEnemy, padding);
     }
 
     public void setX(int newX) throws RuntimeException {
