@@ -81,6 +81,8 @@ public class EditorController implements ActionListener, PropertyChangeListener,
 
     @Override
     public void itemStateChanged(ItemEvent e) {
+        GravitySwitchPort port = model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getGravitySwitchPortData(this.getCurrentSpecialPort());
+
         switch (((JComponent) e.getSource()).getName()) {
             case "checkbox_levelData_gravity":
                 model.setDataChanged(true);
@@ -98,12 +100,37 @@ public class EditorController implements ActionListener, PropertyChangeListener,
                     model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setFreezeZonks(false);
                 }
                 break;
+            case "checkBox_levelData_specialPortToggleGravity":
+                model.setDataChanged(true);
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    port.setGravity(true);
+                } else {
+                    port.setGravity(false);
+                }
+                break;
+            case "checkBox_levelData_specialPortToggleFreezeEnemy":
+                model.setDataChanged(true);
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    port.setFreezeEnemy(true);
+                } else {
+                    port.setFreezeEnemy(false);
+                }
+                break;
+            case "checkBox_levelData_specialPortToggleFreezeZonks":
+                model.setDataChanged(true);
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    port.setFreezeZonks(true);
+                } else {
+                    port.setFreezeZonks(false);
+                }
+                break;
         }
-
+        model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setGravitySwitchPortData(this.getCurrentSpecialPort(), port);
     }
 
     @Override
     public void focusLost(FocusEvent e) {
+        GravitySwitchPort port = model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getGravitySwitchPortData(this.getCurrentSpecialPort());
         switch (e.getSource().getClass().getName()) {
             case "javax.swing.JTextField":
                 JTextField component = (JTextField) e.getSource();
@@ -120,12 +147,11 @@ public class EditorController implements ActionListener, PropertyChangeListener,
                         }
                         break;
                     case "textField_levelData_requiredInfotrons":
-                        Integer value = null;
                         try {
-                            value = Integer.parseInt(component.getText());
-                            if (value > -1 && value < 256) {
+                            Integer val = Integer.parseInt(component.getText());
+                            if (val > -1 && val < 256) {
                                 component.setBorder(new JTextField().getBorder());
-                                model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setRequiredInfotrons(value);
+                                model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setRequiredInfotrons(val);
                                 model.setDataChanged(true);
                                 return;
                             }
@@ -137,10 +163,61 @@ public class EditorController implements ActionListener, PropertyChangeListener,
                         component.setBorder(new LineBorder(Color.red, 1));
 
                         break;
+                    case "textField_levelData_gravitySwitchPortCount":
+                        try {
+                            Integer val = Integer.parseInt(component.getText());
+                            if (val > 0 && val < 11) {
+                                component.setBorder(new JTextField().getBorder());
+                                model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setGravitySwitchPorts(val);
+                                model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setGravitySwitchPortData(this.getCurrentSpecialPort(), port);
+                                return;
+                            }
+                        } catch (NumberFormatException ex) {
+
+                        }
+                        component.setBorder(new LineBorder(Color.red, 1));
+                        break;
+                    case "textField_levelData_gravitySwitchPortSelection":
+                        try {
+                            Integer val = Integer.parseInt(component.getText());
+                            if (val > 0 && val < 11) {
+                                component.setBorder(new JTextField().getBorder());
+                                model.setCurrentSpecialPort(val);
+                                model.setDataChanged(true);
+                                return;
+                            }
+                        } catch (NumberFormatException ex) {
+
+                        }
+                        component.setBorder(new LineBorder(Color.red, 1));
+                        break;
+                    case "textField_levelData_gravitySwitchPortX":
+                        try {
+                            Integer val = Integer.parseInt(component.getText());
+                            component.setBorder(new JTextField().getBorder());
+                            port.setX(val);
+                            model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setGravitySwitchPortData(this.getCurrentSpecialPort(), port);
+                            return;
+                        } catch (NumberFormatException ex) {
+                            System.out.println(ex);
+                        }
+                        component.setBorder(new LineBorder(Color.red, 1));
+                        break;
+                    case "textField_levelData_gravitySwitchPortY":
+                        try {
+                            Integer val = Integer.parseInt(component.getText());
+                            component.setBorder(new JTextField().getBorder());
+                            port.setY(val);
+                            model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).setGravitySwitchPortData(this.getCurrentSpecialPort(), port);
+                            return;
+                        } catch (NumberFormatException ex) {
+
+                        }
+                        component.setBorder(new LineBorder(Color.red, 1));
+                        break;
                 }
 
         }
-
     }
 
     @Override
@@ -251,6 +328,24 @@ public class EditorController implements ActionListener, PropertyChangeListener,
 
     public void setCurrentLevelSlot(int value) {
         model.setCurrentLevelSlot(value);
+    }
+
+    /**
+     * Set selected special port in the UI
+     *
+     * @param currentSpecialPort
+     */
+    public void setCurrentSpecialPort(Integer currentSpecialPort) {
+        model.setCurrentSpecialPort(currentSpecialPort);
+    }
+
+    /**
+     * Return current special port
+     *
+     * @return
+     */
+    public Integer getCurrentSpecialPort() {
+        return model.getCurrentSpecialPort();
     }
 
     // functionality
