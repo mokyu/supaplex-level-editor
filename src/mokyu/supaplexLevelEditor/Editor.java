@@ -33,11 +33,11 @@ public class Editor {
         }
         final EditorModel model = new EditorModel();
         model.init();
+        model.setTileSet(iconGenerator.getTilesetFromFile("resources/tiles.png"));
         final EditorController controller = new EditorController(model);
         model.addPropertyChangeListener(controller);
         final EditorView view = new EditorView(controller, model);
         controller.setView(view);
-        view.setIcons(iconGenerator.getTilesetFromFile("resources/tiles.png"));
     }
 
 }

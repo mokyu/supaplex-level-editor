@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.logging.Logger;
 import java.beans.*;
+import javax.swing.ImageIcon;
 import mokyu.libsupaplex.*;
 
 /**
@@ -63,8 +64,10 @@ public class EditorModel implements PropertyChangeListener {
         // pass property change to Controller
         pcs.firePropertyChange(e);
     }
+
     /**
      * Register controller to this.
+     *
      * @param e Change event
      */
     public void addPropertyChangeListener(PropertyChangeListener e) {
@@ -75,23 +78,28 @@ public class EditorModel implements PropertyChangeListener {
     private Supaplex supaplex;
     private Properties properties;
     private boolean dataChanged;
-    
+    private HashMap<Tile, ImageIcon> tileSet;
+
     // UI State related stuff
     private Integer currentLevelSlot;
     private Integer currentSpecialPort;
 
     /**
-     * Set current selected special port for modification, triggers property change
-     * @param currentSpecialPort 
+     * Set current selected special port for modification, triggers property
+     * change
+     *
+     * @param currentSpecialPort
      */
     public void setCurrentSpecialPort(Integer currentSpecialPort) {
         Integer old = getCurrentSpecialPort();
         this.currentSpecialPort = currentSpecialPort;
         pcs.firePropertyChange("currentSpecialPort", old, currentSpecialPort);
     }
+
     /**
      * Return current special port
-     * @return 
+     *
+     * @return
      */
     public Integer getCurrentSpecialPort() {
         return currentSpecialPort;
@@ -99,7 +107,8 @@ public class EditorModel implements PropertyChangeListener {
 
     /**
      * Change level slot, fired property change and notifies the controller.
-     * @param currentLevelSlot 
+     *
+     * @param currentLevelSlot
      */
     public void setCurrentLevelSlot(Integer currentLevelSlot) {
         Integer old = getCurrentLevelSlot();
@@ -110,7 +119,7 @@ public class EditorModel implements PropertyChangeListener {
     public Integer getCurrentLevelSlot() {
         return currentLevelSlot;
     }
-    
+
     public EditorModel() {
         supaplex = new Supaplex();
         supaplex.init();
@@ -210,6 +219,21 @@ public class EditorModel implements PropertyChangeListener {
             Logger.getLogger(EditorModel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         pcs.firePropertyChange("Properties", 0, 1);
+    }
+
+    /**
+     * 
+     * @return 
+     */
+    public HashMap<Tile, ImageIcon> getTileSet() {
+        return tileSet;
+    }
+    /**
+     * set the image collection set for supaplex tiles used for rendering
+     * @param tileSet 
+     */
+    public void setTileSet(HashMap<Tile, ImageIcon> tileSet) {
+        this.tileSet = tileSet;
     }
 
 }
