@@ -118,7 +118,7 @@ public class Level {
      */
     final public Tile getTile(Point point) throws RuntimeException {
         if (point.x >= 60 || point.x < 0 || point.y >= 24 || point.y < 0) {
-            throw new RuntimeException("Invalid coordinates given. Expected x value between 0 and 60 and y value between 0 and 24.");
+            throw new RuntimeException("Invalid coordinates given. Expected x value between 0 and 60 and y value between 0 and 24. Given: x" + point.x + " y" + point.y);
         }
         return this.level.get(point);
     }
@@ -345,9 +345,9 @@ public class Level {
     final public byte[] toByteArray() {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         try {
-            for (int i = 0; i < 60; i++) {
-                for (int j = 0; j < 24; j++) {
-                    Point pt = new Point(i, j);
+            for (int y = 0; y < 24; y++) {
+                for (int x = 0; x < 60; x++) {
+                    Point pt = new Point(x, y);
                     stream.write(this.level.get(pt).getTile());
                 }
             }
@@ -378,9 +378,9 @@ public class Level {
         }
         this.level = new HashMap<>();
         int offset = 0;
-        for (int i = 0; i < 60; i++) {
-            for (int j = 0; j < 24; j++) {
-                Point pt = new Point(i, j);
+        for (int y = 0; y < 24; y++) {
+            for (int x = 0; x < 60; x++) {
+                Point pt = new Point(x, y);
                 Tile t = new Tile(level[offset]);
                 this.level.put(pt, t);
                 ++offset;
