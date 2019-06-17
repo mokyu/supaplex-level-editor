@@ -80,16 +80,40 @@ public class EditorView extends javax.swing.JFrame {
         });
         
     }
-
+    
     private void initLevelView() {
-        JLevelView a = new JLevelView(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()),model.getTileSet());
+        JLevelView a = new JLevelView(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()), model.getTileSet());
+        a.addListener(controller);
         editorContainer.setLayout(new BorderLayout());
         editorContainer.add(a, BorderLayout.CENTER);
         
         JScrollPane scroll = new JScrollPane(a);
-        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);  
-        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);  
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);        
+        scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);        
         editorContainer.add(scroll);
+
+        // set scroll position
+        scroll.getViewport().setViewPosition(model.getScrollPos());
+        // add listener to scrollbars
+        scroll.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+            @Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                int x = e.getValue();
+                java.awt.Point pt = model.getScrollPos();
+                pt.x = x;
+                model.setScrollPos(pt);
+            }
+        });
+        scroll.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {
+            @Override
+            public void adjustmentValueChanged(AdjustmentEvent e) {
+                int y = e.getValue();
+                java.awt.Point pt = model.getScrollPos();
+                pt.y = y;
+                model.setScrollPos(pt);
+            }
+        });
+        
     }
     
     private void initMenuBar() {
@@ -215,28 +239,23 @@ public class EditorView extends javax.swing.JFrame {
     
     private void initStatusBar() {
         labels = new HashMap<>();
-        //TODO: initiate buttons, and hook up to controller
-        // initiate labels and such
-        // and look into the scrollable frame
-        // scalable canvas
-
-        // create static labels
-        // Status bar elements
-        JLabel x = new JLabel();
-        x.setName("label_statusBar_xCoord");
-        statusBar.add(x);
-        labels.put(x.getName(), x);
-        x.setVisible(false);
-        language.setComponentTranslation(controller.getPreferredLanguage(), x);
+        mokyu.libsupaplex.Point point = model.getCurrentHoveredPoint();
+        Tile tile = null;
+        if (point != null) {
+            tile = model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getTile(point);
+        } else {
+            point = new mokyu.libsupaplex.Point(0, 0);
+            tile = TileInfo.VOID;
+        }
         
+        JLabel x = new JLabel();
+        statusBar.add(x);
+        x.setText("x:" + point.x);
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
         
         x = new JLabel();
-        x.setName("label_statusBar_yCoord");
         statusBar.add(x);
-        labels.put(x.getName(), x);
-        x.setVisible(false);
-        language.setComponentTranslation(controller.getPreferredLanguage(), x);
+        x.setText(x.getText() + ":" + point.y);
         
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
         
@@ -244,7 +263,7 @@ public class EditorView extends javax.swing.JFrame {
         x.setName("label_statusBar_noExitWarning");
         statusBar.add(x);
         labels.put(x.getName(), x);
-        x.setVisible(false);
+        x.setVisible((controller.getExitCount() == 0));
         language.setComponentTranslation(controller.getPreferredLanguage(), x);
         
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -253,25 +272,44 @@ public class EditorView extends javax.swing.JFrame {
         x = new JLabel();
         x.setName("label_statusBar_noMurphyWarning");
         labels.put(x.getName(), x);
-        x.setVisible(false);
+        x.setVisible((controller.getMurphyCount() == 0));
+        statusBar.add(x);
+        
+        statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
+
+        // warning for not enough infotrons
+        x = new JLabel();
+        x.setName("label_statusBar_notEnoughInfotronsWarning");
+        language.setComponentTranslation(controller.getPreferredLanguage(), x);
+        labels.put(x.getName(), x);
+        x.setName(x.getText() + " (" + controller.getInfotronCount() + "/" + model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getRequiredInfotrons() + ")]");
+        x.setVisible((controller.getInfotronCount() < model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getRequiredInfotrons()));
         statusBar.add(x);
         
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
 
         // hovered tile
         x = new JLabel();
-        x.setVisible(false);
+        x.setVisible(true);
         x.setName("label_statusBar_hoveredTile");
-        labels.put(x.getName(), x);
         statusBar.add(x);
+        language.setComponentTranslation(controller.getPreferredLanguage(), x);
+        x.setText(x.getText() + ": " + tile.getNiceName());
+        x.setHorizontalTextPosition(JLabel.LEFT);
+        x.setIcon(new ImageIcon(model.getTileSet().get(tile).getImage().getScaledInstance(16, 16, java.awt.Image.SCALE_FAST)));
+        x.setIconTextGap(5);
         
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
 
         // selected tile
         x = new JLabel();
-        x.setVisible(false);
+        x.setVisible(true);
         x.setName("label_statusBar_selectedTile");
-        labels.put(x.getName(), x);
+        language.setComponentTranslation(controller.getPreferredLanguage(), x);
+        x.setText(x.getText() + ": " + model.getSelectedTile().getNiceName());
+        x.setHorizontalTextPosition(JLabel.LEFT);
+        x.setIcon(new ImageIcon(model.getTileSet().get(model.getSelectedTile()).getImage().getScaledInstance(16, 16, java.awt.Image.SCALE_FAST)));
+        x.setIconTextGap(5);
         statusBar.add(x);
     }
     
@@ -513,111 +551,109 @@ public class EditorView extends javax.swing.JFrame {
         this.getContentPane().removeAll();
         init();
         this.repaint();
-        System.out.println("GUI refresh");
         
     }
 
-    /**
-     * Change the selected tile icon (Thread safe)
-     *
-     * @param tile
-     */
-    public void setSelectedTile(Tile tile) {
-        EventQueue.invokeLater(() -> {
-            JLabel component = labels.get("label_statusBar_selectedTile");
-            if (tile == null) {
-                component.setVisible(false);
-                return;
-            }
-            language.setComponentTranslation(controller.getPreferredLanguage(), component);
-            component.setVisible(true);
-            component.setText(component.getText() + ": " + tile.getNiceName());
-            component.setHorizontalTextPosition(JLabel.LEFT);
-            component.setIcon(model.getTileSet().get(tile));
-            component.setIconTextGap(5);
-        });
-    }
-
-    /**
-     * Change the hovered tile icon (Thread safe)
-     *
-     * @param tile
-     */
-    public void setHoveredTile(Tile tile) {
-        EventQueue.invokeLater(() -> {
-            JLabel component = labels.get("label_statusBar_hoveredTile");
-            if (tile == null) {
-                component.setVisible(false);
-                return;
-            }
-            language.setComponentTranslation(controller.getPreferredLanguage(), component);
-            component.setVisible(true);
-            component.setText(component.getText() + ": " + tile.getNiceName());
-            component.setHorizontalTextPosition(JLabel.LEFT);
-            component.setIcon(model.getTileSet().get(tile));
-            component.setIconTextGap(5);
-        });
-    }
-
-    /**
-     * Set x coord in the status bar (Thread safe)
-     *
-     * @param value numeric value for the X axis
-     */
-    public void setX(Integer value) {
-        EventQueue.invokeLater(() -> {
-            JLabel component = labels.get("label_statusBar_xCoord");
-            if (value == null) {
-                component.setVisible(false);
-                return;
-            }
-            component.setVisible(true);
-            language.setComponentTranslation(controller.getPreferredLanguage(), component);
-            component.setText(component.getText() + ":" + value);
-        });
-    }
-
-    /**
-     * Set y coord in the status bar (Thread safe)
-     *
-     * @param value numeric value for the Y axis
-     */
-    public void setY(Integer value) {
-        EventQueue.invokeLater(() -> {
-            
-            JLabel component = labels.get("label_statusBar_yCoord");
-            if (value == null) {
-                component.setVisible(false);
-                return;
-            }
-            component.setVisible(true);
-            language.setComponentTranslation(controller.getPreferredLanguage(), component);
-            component.setText(component.getText() + ":" + value);
-        });
-    }
-
-    /**
-     * Show or hide the missing Murphy warning. (Thread safe)
-     *
-     * @param value, toggles visibility of the warning text
-     */
-    public void setMissingMurphy(boolean value) {
-        EventQueue.invokeLater(() -> {
-            labels.get("label_statusBar_noMurphyWarning").setVisible(value);
-        });
-    }
-
-    /**
-     * Show or hide the missing Exit warning. (Thread safe)
-     *
-     * @param value, toggles visibility of the warning text
-     */
-    public void setMissingExit(boolean value) {
-        EventQueue.invokeLater(() -> {
-            labels.get("label_statusBar_noExitWarning").setVisible(value);
-        });
-    }
-
+//    /**
+//     * Change the selected tile icon (Thread safe)
+//     *
+//     * @param tile
+//     */
+//    public void setSelectedTile(Tile tile) {
+//        EventQueue.invokeLater(() -> {
+//            JLabel component = labels.get("label_statusBar_selectedTile");
+//            if (tile == null) {
+//                component.setVisible(false);
+//                return;
+//            }
+//            language.setComponentTranslation(controller.getPreferredLanguage(), component);
+//            component.setVisible(true);
+//            component.setText(component.getText() + ": " + tile.getNiceName());
+//            component.setHorizontalTextPosition(JLabel.LEFT);
+//            component.setIcon(model.getTileSet().get(tile));
+//            component.setIconTextGap(5);
+//        });
+//    }
+//
+//    /**
+//     * Change the hovered tile icon (Thread safe)
+//     *
+//     * @param tile
+//     */
+//    public void setHoveredTile(Tile tile) {
+//        EventQueue.invokeLater(() -> {
+//            JLabel component = labels.get("label_statusBar_hoveredTile");
+//            if (tile == null) {
+//                component.setVisible(false);
+//                return;
+//            }
+//            language.setComponentTranslation(controller.getPreferredLanguage(), component);
+//            component.setVisible(true);
+//            component.setText(component.getText() + ": " + tile.getNiceName());
+//            component.setHorizontalTextPosition(JLabel.LEFT);
+//            component.setIcon(model.getTileSet().get(tile));
+//            component.setIconTextGap(5);
+//        });
+//    }
+//
+//    /**
+//     * Set x coord in the status bar (Thread safe)
+//     *
+//     * @param value numeric value for the X axis
+//     */
+//    public void setX(Integer value) {
+//        EventQueue.invokeLater(() -> {
+//            JLabel component = labels.get("label_statusBar_xCoord");
+//            if (value == null) {
+//                component.setVisible(false);
+//                return;
+//            }
+//            component.setVisible(true);
+//            language.setComponentTranslation(controller.getPreferredLanguage(), component);
+//            component.setText(component.getText() + ":" + value);
+//        });
+//    }
+//
+//    /**
+//     * Set y coord in the status bar (Thread safe)
+//     *
+//     * @param value numeric value for the Y axis
+//     */
+//    public void setY(Integer value) {
+//        EventQueue.invokeLater(() -> {
+//            
+//            JLabel component = labels.get("label_statusBar_yCoord");
+//            if (value == null) {
+//                component.setVisible(false);
+//                return;
+//            }
+//            component.setVisible(true);
+//            language.setComponentTranslation(controller.getPreferredLanguage(), component);
+//            component.setText(component.getText() + ":" + value);
+//        });
+//    }
+//
+//    /**
+//     * Show or hide the missing Murphy warning. (Thread safe)
+//     *
+//     * @param value, toggles visibility of the warning text
+//     */
+//    public void setMissingMurphy(boolean value) {
+//        EventQueue.invokeLater(() -> {
+//            labels.get("label_statusBar_noMurphyWarning").setVisible(value);
+//        });
+//    }
+//
+//    /**
+//     * Show or hide the missing Exit warning. (Thread safe)
+//     *
+//     * @param value, toggles visibility of the warning text
+//     */
+//    public void setMissingExit(boolean value) {
+//        EventQueue.invokeLater(() -> {
+//            labels.get("label_statusBar_noExitWarning").setVisible(value);
+//        });
+//    }
     /**
      * Spawn a message box, not thread safe
      *

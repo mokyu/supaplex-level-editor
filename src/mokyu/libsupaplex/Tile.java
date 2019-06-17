@@ -84,7 +84,7 @@ public class Tile {
         if (this == o) {
             return true;
         }
-        if (this.getClass() != o.getClass() || o == null) {
+        if (this.getClass() != o.getClass()) {
             return false;
         }
         Tile tile = (Tile) o;
