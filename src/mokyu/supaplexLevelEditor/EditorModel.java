@@ -83,6 +83,35 @@ public class EditorModel implements PropertyChangeListener {
     // UI State related stuff
     private Integer currentLevelSlot;
     private Integer currentSpecialPort;
+    private Point currentHoveredPoint;
+    private java.awt.Point scrollPos;
+    private Tile selectedTile;
+
+    public Tile getSelectedTile() {
+        return selectedTile;
+    }
+
+    public void setSelectedTile(Tile selectedTile) {
+        this.selectedTile = selectedTile;
+    }
+    public java.awt.Point getScrollPos() {
+        return scrollPos;
+    }
+
+    public void setScrollPos(java.awt.Point scrollPos) {
+        this.scrollPos = scrollPos;
+    }
+    
+    public Point getCurrentHoveredPoint() {
+        return currentHoveredPoint;
+    }
+
+    public void setCurrentHoveredPoint(Point p) {
+        if (this.currentHoveredPoint.x != p.x || this.currentHoveredPoint.y != p.y) { // don't redraw when we hover over the same tile.
+            this.currentHoveredPoint = p;
+            pcs.firePropertyChange("HoveredPoint", 0, 1);
+        }
+    }
 
     /**
      * Set current selected special port for modification, triggers property
@@ -127,6 +156,9 @@ public class EditorModel implements PropertyChangeListener {
         dataChanged = false;
         currentLevelSlot = 1;
         currentSpecialPort = 1;
+        scrollPos = new java.awt.Point(0,0);
+        currentHoveredPoint = new Point(0,0);
+        selectedTile = TileInfo.BASE;
         File props = new File("config.properties");
         if (props.exists()) {
             InputStream fstream;
@@ -222,15 +254,17 @@ public class EditorModel implements PropertyChangeListener {
     }
 
     /**
-     * 
-     * @return 
+     *
+     * @return
      */
     public HashMap<Tile, ImageIcon> getTileSet() {
         return tileSet;
     }
+
     /**
      * set the image collection set for supaplex tiles used for rendering
-     * @param tileSet 
+     *
+     * @param tileSet
      */
     public void setTileSet(HashMap<Tile, ImageIcon> tileSet) {
         this.tileSet = tileSet;

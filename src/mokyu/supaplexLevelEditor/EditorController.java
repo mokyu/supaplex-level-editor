@@ -32,7 +32,7 @@ import java.util.*;
  *
  * @author Mokyu
  */
-public class EditorController implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener, ItemListener {
+public class EditorController implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener, ItemListener, JLevelViewListener {
 
     private final EditorModel model;
     private EditorView view;
@@ -69,8 +69,6 @@ public class EditorController implements ActionListener, PropertyChangeListener,
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
-        System.out.println("Property Change Trigger succesful");
-        System.out.println(e.toString());
         view.refresh();
     }
 
@@ -230,7 +228,6 @@ public class EditorController implements ActionListener, PropertyChangeListener,
     }
 
     private void comboBoxHandler(JComboBox source) {
-        System.out.println("ComboBox change: " + source.getName());
         switch (source.getName()) {
             case "combobox_levelData_selectLevelSlot":
                 this.setCurrentLevelSlot(source.getSelectedIndex());
@@ -315,7 +312,6 @@ public class EditorController implements ActionListener, PropertyChangeListener,
                 });
                 //</editor-fold>
                 break;
-            case "":
         }
         // View Menu
 
@@ -371,4 +367,60 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         return list;
     }
 
+    @Override
+    public void tileHovered(Point point) {
+        //System.out.println("hovered: x" + point.x + " y" + point.y);
+        model.setCurrentHoveredPoint(point);
+    }
+
+    @Override
+    public void tileLeftClicked(Point point) {
+        System.out.println("clicked: x" + point.x + " y" + point.y);
+    }
+
+    @Override
+    public void tileRightClicked(Point point) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void tileGroupSelected(Point start, Point end) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public Integer getExitCount() {
+        Integer count = 0;
+        for (int x = 0; x < 60; x++) {
+            for (int y = 0; y < 24; y++) {
+                if (model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getTile(new Point(x, y)).equals(TileInfo.EXIT)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public Integer getMurphyCount() {
+        Integer count = 0;
+        for (int x = 0; x < 60; x++) {
+            for (int y = 0; y < 24; y++) {
+                if (model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getTile(new Point(x, y)).equals(TileInfo.MURPHY)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    public Integer getInfotronCount() {
+        Integer count = 0;
+        for (int x = 0; x < 60; x++) {
+            for (int y = 0; y < 24; y++) {
+                if (model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getTile(new Point(x, y)).equals(TileInfo.INFOTRON)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

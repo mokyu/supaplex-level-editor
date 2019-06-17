@@ -20,7 +20,7 @@ import java.awt.Dimension;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Graphics;
-import java.util.HashMap;
+import java.util.*;
 import java.awt.Image;
 import mokyu.libsupaplex.*;
 
@@ -30,13 +30,19 @@ import mokyu.libsupaplex.*;
  *
  * @author Mokyu
  */
-public class JLevelView extends JPanel implements MouseListener {
+public class JLevelView extends JPanel implements MouseListener, MouseMotionListener {
 
     public static final Integer TILE_SIZE = 16;                                 // tiles are 16x16
     public static final Integer LEVEL_HEIGHT = 24;                              // level field is 24 high
     public static final Integer LEVEL_HEIGHT_PX = 24 * JLevelView.TILE_SIZE;    // pixel height at 1x zoom
     public static final Integer LEVEL_WIDTH = 60;                               // level field is 60 wide
     public static final Integer LEVEL_WIDTH_PX = 60 * JLevelView.TILE_SIZE;     // pixel weidth at 1x zoom
+
+    private List<JLevelViewListener> listeners = new ArrayList<>();
+
+    public void addListener(JLevelViewListener listener) {
+        listeners.add(listener);
+    }
 
     private Integer zoomLevel;
     private Integer x;
@@ -58,6 +64,7 @@ public class JLevelView extends JPanel implements MouseListener {
      * @param tileSet Matching list of icons to associate Supaplex tiles with.
      */
     public JLevelView(Integer x, Integer y, Integer height, Integer width, Level level, HashMap<Tile, ImageIcon> tileSet) {
+        super();
         this.x = x;
         this.y = y;
         this.height = height;
@@ -76,6 +83,12 @@ public class JLevelView extends JPanel implements MouseListener {
      */
     public JLevelView(Level level, HashMap<Tile, ImageIcon> tileSet) {
         this(0, 0, JLevelView.LEVEL_HEIGHT, JLevelView.LEVEL_WIDTH, level, tileSet);
+        init();
+    }
+
+    private void init() {
+        addMouseMotionListener(this);
+        addMouseListener(this);
     }
 
     @Override
@@ -132,6 +145,18 @@ public class JLevelView extends JPanel implements MouseListener {
         return (coord * TILE_SIZE) * getZoomLevel();
     }
 
+    private Point parseMouseCoords(MouseEvent e) {
+        if (e.getX() < (TILE_SIZE * getZoomLevel()) || e.getX() >= (TILE_SIZE * getZoomLevel() * 61)) {
+            return null;
+        }
+        if (e.getY() < (TILE_SIZE * getZoomLevel()) || e.getY() >= (TILE_SIZE * getZoomLevel() * 25)) {
+            return null;
+        }
+        Integer x = (e.getX() / (TILE_SIZE * getZoomLevel())) - 1;
+        Integer y = (e.getY() / (TILE_SIZE * getZoomLevel())) - 1;
+        return new Point(x, y);
+    }
+
     @Override
     public void mouseExited(MouseEvent e) {
         // we can ignore this
@@ -140,7 +165,6 @@ public class JLevelView extends JPanel implements MouseListener {
     @Override
     public void mouseEntered(MouseEvent e) {
         // we can ignore this
-        // figure out a way to track mouse events
     }
 
     @Override
@@ -155,6 +179,31 @@ public class JLevelView extends JPanel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        // use for fill, right click clear
+        Point point = parseMouseCoords(e);
+        if (point != null) {
+            for (JLevelViewListener l : listeners) {
+                if (e.getButton() == MouseEvent.BUTTON1) {
+                    l.tileLeftClicked(point);
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    l.tileRightClicked(point);
+                }
+
+            }
+        }
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        Point point = parseMouseCoords(e);
+        if (point != null) {
+            for (JLevelViewListener l : listeners) {
+                l.tileHovered(point);
+            }
+        }
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
     }
 }
