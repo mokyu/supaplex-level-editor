@@ -20,7 +20,7 @@ import java.awt.Dimension;
 import javax.swing.*;
 import java.awt.event.*;
 import java.awt.Graphics;
-import java.util.HashMap;
+import java.util.*;
 import java.awt.Image;
 import mokyu.libsupaplex.*;
 
@@ -30,21 +30,34 @@ import mokyu.libsupaplex.*;
  *
  * @author Mokyu
  */
-public class JLevelView extends JPanel implements MouseListener {
+public class JLevelView extends JPanel implements MouseListener, MouseMotionListener {
 
     public static final Integer TILE_SIZE = 16;                                 // tiles are 16x16
     public static final Integer LEVEL_HEIGHT = 24;                              // level field is 24 high
     public static final Integer LEVEL_HEIGHT_PX = 24 * JLevelView.TILE_SIZE;    // pixel height at 1x zoom
     public static final Integer LEVEL_WIDTH = 60;                               // level field is 60 wide
     public static final Integer LEVEL_WIDTH_PX = 60 * JLevelView.TILE_SIZE;     // pixel weidth at 1x zoom
+    private static final Integer TILE_NORTH = 0;
+    private static final Integer TILE_EAST = 1;
+    private static final Integer TILE_SOUTH = 2;
+    private static final Integer TILE_WEST = 3;
+    private List<JLevelViewListener> listeners = new ArrayList<>();
+
+    public void addListener(JLevelViewListener listener) {
+        listeners.add(listener);
+    }
 
     private Integer zoomLevel;
-    private Integer x;
-    private Integer y;
-    private Integer height;
-    private Integer width;
+    private Integer _x;
+    private Integer _y;
+    private Integer _height;
+    private Integer _width;
     private Level level;
     private HashMap<Tile, ImageIcon> tileSet;
+    private LinkedHashSet<Point> selection;
+    private Tile fillTarget;
+    private Tile source;
+    private LinkedHashSet<Point> toFill;
 
     /**
      * Render parts of a Supaplex level. Useful if you do not have to show the
@@ -55,17 +68,24 @@ public class JLevelView extends JPanel implements MouseListener {
      * @param height height of the viewport
      * @param width width of the viewport
      * @param level Level object to generate from
+     * @param zoom
      * @param tileSet Matching list of icons to associate Supaplex tiles with.
+     * @param tile Used for the floodfill algorithm to determine what tile to
+     * fill other tiles in. fill.
      */
-    public JLevelView(Integer x, Integer y, Integer height, Integer width, Level level, HashMap<Tile, ImageIcon> tileSet) {
-        this.x = x;
-        this.y = y;
-        this.height = height;
-        this.width = width;
-        this.zoomLevel = 2;
+    public JLevelView(Integer x, Integer y, Integer height, Integer width, Level level, Integer zoom, HashMap<Tile, ImageIcon> tileSet, Tile tile) {
+        super();
+        this._x = x;
+        this._y = y;
+        this._height = height;
+        this._width = width;
+        this.zoomLevel = zoom;
         this.level = level;
         this.tileSet = tileSet;
-        this.setPreferredSize(new Dimension((JLevelView.LEVEL_WIDTH_PX * this.zoomLevel) + (TILE_SIZE * this.zoomLevel), (JLevelView.LEVEL_HEIGHT_PX * this.zoomLevel) + (TILE_SIZE * this.zoomLevel)));
+        this.selection = new LinkedHashSet<>();
+        this.fillTarget = tile;
+        this.toFill = new LinkedHashSet<>();
+        this.setPreferredSize(new Dimension(calc(62), calc(26))); // add space for 2 extra tiles to make it look more uniform
     }
 
     /**
@@ -73,9 +93,17 @@ public class JLevelView extends JPanel implements MouseListener {
      *
      * @param level Level object to generate from
      * @param tileSet Matching list of icons to associate Supaplex tiles with.
+     * @param zoom zoom level of the levelview 1-4
+     * @param tile the target tile (used for calculating flood fill)
      */
-    public JLevelView(Level level, HashMap<Tile, ImageIcon> tileSet) {
-        this(0, 0, JLevelView.LEVEL_HEIGHT, JLevelView.LEVEL_WIDTH, level, tileSet);
+    public JLevelView(Level level, HashMap<Tile, ImageIcon> tileSet, Integer zoom, Tile tile) {
+        this(0, 0, JLevelView.LEVEL_HEIGHT, JLevelView.LEVEL_WIDTH, level, zoom, tileSet, tile);
+        init();
+    }
+
+    private void init() {
+        addMouseMotionListener(this);
+        addMouseListener(this);
     }
 
     @Override
@@ -132,6 +160,147 @@ public class JLevelView extends JPanel implements MouseListener {
         return (coord * TILE_SIZE) * getZoomLevel();
     }
 
+    /**
+     * Generate a line using the DDA algorithm
+     *
+     * @param s
+     * @return
+     */
+    private LinkedHashSet<Point> line(LinkedHashSet<Point> s) {
+        LinkedHashSet<Point> result = new LinkedHashSet<>();
+        if (!s.iterator().hasNext()) {
+            return result;
+        }
+        Point first = s.iterator().next();
+        Point last = (Point) s.toArray()[s.size() - 1];
+        if (last.x < first.x) {
+            Point tmp = new Point(first.x, first.y);
+            first = new Point(last.x, last.y);
+            last = tmp;
+        }
+        double x, y, x1 = first.x, y1 = first.y, x2 = last.x, y2 = last.y, dx, dy, step;
+        int i = 1;
+        dx = last.x - first.x;
+        dy = last.y - first.y;
+        if (Math.abs(dx) >= Math.abs(dy)) {
+            step = Math.abs(dx);
+        } else {
+            step = Math.abs(dy);
+        }
+        dx = dx / step;
+        dy = dy / step;
+        x = x1;
+        y = y1;
+        while (i <= step) {
+            result.add(new Point((int) x, (int) y));
+            x = x + dx;
+            y = y + dy;
+            ++i;
+        }
+        result.add(last);
+        return result;
+    }
+
+    private LinkedHashSet<Point> rect(LinkedHashSet<Point> s) {
+        LinkedHashSet<Point> result = new LinkedHashSet<>();
+        if (!s.iterator().hasNext()) {
+            return result;
+        }
+        Point first = s.iterator().next();
+        Point last = (Point) s.toArray()[s.size() - 1];
+        int x1 = first.x, x2 = last.x, y1 = first.y, y2 = last.y;
+        if (first.x > last.x) {
+            x1 = last.x;
+            x2 = first.x;
+        }
+        if (first.y > last.y) {
+            y1 = last.y;
+            y2 = first.y;
+        }
+        for(int x = x1; x <= x2; x++) {
+            for(int y = y1; y <= y2; y++) {
+                result.add(new Point(x,y));
+            }
+        }
+        return result;
+    }
+
+    /**
+     * get the neighbour tile in 4 directions. returns null when tile is out of
+     * bounds
+     *
+     * @param pt
+     * @param direction
+     * @return
+     */
+    private Point getNeighbour(Point pt, Integer direction) {
+        if (direction.equals(JLevelView.TILE_NORTH)) {
+            if (pt.y == 0) { // can't go further north than 0
+                return null;
+            }
+            return new Point(pt.x, pt.y - 1);
+        }
+        if (direction.equals(JLevelView.TILE_EAST)) {
+            if (pt.x == 59) { // can't go further east than 59
+                return null;
+            }
+            return new Point(pt.x + 1, pt.y);
+        }
+        if (direction.equals(JLevelView.TILE_SOUTH)) {
+            if (pt.y == 23) { // can't go further south than 23
+                return null;
+            }
+            return new Point(pt.x, pt.y + 1);
+        }
+        if (direction.equals(JLevelView.TILE_WEST)) {
+            if (pt.x == 0) { // can't go further west than 0
+                return null;
+            }
+            return new Point(pt.x - 1, pt.y);
+        }
+        return null;
+    }
+
+    private LinkedHashSet<Point> fill_start(Point node, int button) {
+        this.source = level.getTile(node);
+        this.toFill.add(node);
+        if (button == MouseEvent.BUTTON3) {
+            this.fillTarget = StandardTiles.VOID;
+        }
+        fill(this.getNeighbour(node, JLevelView.TILE_NORTH));
+        fill(this.getNeighbour(node, JLevelView.TILE_EAST));
+        fill(this.getNeighbour(node, JLevelView.TILE_SOUTH));
+        fill(this.getNeighbour(node, JLevelView.TILE_WEST));
+        return this.toFill;
+    }
+
+    private void fill(Point node) {
+        if (node == null) {
+            return;
+        }
+        Tile tile = level.getTile(node);
+        // only fill when the tile is different from our filltarget, when the tile is the same as the tile type we wish to fill and when it's not part of the selection already
+        if (!tile.equals(this.fillTarget) && tile.equals(this.source) && !this.toFill.contains(node)) {
+            this.toFill.add(node);
+            fill(this.getNeighbour(node, JLevelView.TILE_NORTH));
+            fill(this.getNeighbour(node, JLevelView.TILE_EAST));
+            fill(this.getNeighbour(node, JLevelView.TILE_SOUTH));
+            fill(this.getNeighbour(node, JLevelView.TILE_WEST));
+        }
+    }
+
+    private Point parseMouseCoords(MouseEvent e) {
+        if (e.getX() < (TILE_SIZE * getZoomLevel()) || e.getX() >= (TILE_SIZE * getZoomLevel() * 61)) {
+            return null;
+        }
+        if (e.getY() < (TILE_SIZE * getZoomLevel()) || e.getY() >= (TILE_SIZE * getZoomLevel() * 25)) {
+            return null;
+        }
+        Integer xCoord = (e.getX() / (TILE_SIZE * getZoomLevel())) - 1;
+        Integer yCoord = (e.getY() / (TILE_SIZE * getZoomLevel())) - 1;
+        return new Point(xCoord, yCoord);
+    }
+
     @Override
     public void mouseExited(MouseEvent e) {
         // we can ignore this
@@ -139,13 +308,24 @@ public class JLevelView extends JPanel implements MouseListener {
 
     @Override
     public void mouseEntered(MouseEvent e) {
-        // we can ignore this
-        // figure out a way to track mouse events
+        // empty the hashmap when we are not dragging
+        selection = new LinkedHashSet<>();
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        // use to calculate drag between 2 points
+        Point pt = parseMouseCoords(e);
+        if (pt != null) {
+            selection.add(pt);
+        }
+        // now we can process it.
+        for (JLevelViewListener l : listeners) {
+            l.pencilSelection(selection, e.getButton());
+            l.lineSelection(line(selection), e.getButton());
+            l.squareSelection(rect(selection), e.getButton());
+            l.fillSelection(fill_start(parseMouseCoords(e), e.getButton()), e.getButton());
+        }
+
     }
 
     @Override
@@ -155,6 +335,33 @@ public class JLevelView extends JPanel implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        // use for fill, right click clear
+        Point point = parseMouseCoords(e);
+        if (point != null) {
+            for (JLevelViewListener l : listeners) {
+                LinkedHashSet<Point> ps = new LinkedHashSet<>();
+                ps.add(point);
+                l.pencilSelection(ps, e.getButton());
+                l.fillSelection(fill_start(parseMouseCoords(e), e.getButton()), e.getButton());
+            }
+        }
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        Point point = parseMouseCoords(e);
+        if (point != null) {
+            for (JLevelViewListener l : listeners) {
+                l.tileHovered(point);
+            }
+        }
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        Point pt = parseMouseCoords(e);
+        if (pt == null) {
+            return;
+        }
+        selection.add(pt);
     }
 }

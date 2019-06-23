@@ -20,23 +20,6 @@ package mokyu.supaplexLevelEditor;
  *
  * @author Mokyu
  */
-public class Editor {
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        try {
-            language.getTranslations();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        final EditorModel model = new EditorModel();
-        model.setTileSetLevelView(iconGenerator.getTilesetFromFile("resources/tiles.png"));
-        model.setTiles(iconGenerator.getTilesetFromFile("resources/tiles.png"));
-        final EditorController controller = new EditorController(model);
-        final EditorView view = new EditorView(controller, model);
-        controller.setView(view);
-    }
-
+public class Information {
+    public static final String VERSION = "1.0.0";
 }

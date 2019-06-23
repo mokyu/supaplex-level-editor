@@ -16,27 +16,23 @@
  */
 package mokyu.supaplexLevelEditor;
 
+import java.util.LinkedHashSet;
+import mokyu.libsupaplex.*;
+
 /**
  *
  * @author Mokyu
  */
-public class Editor {
+public interface JLevelViewListener {
 
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String[] args) {
-        try {
-            language.getTranslations();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        final EditorModel model = new EditorModel();
-        model.setTileSetLevelView(iconGenerator.getTilesetFromFile("resources/tiles.png"));
-        model.setTiles(iconGenerator.getTilesetFromFile("resources/tiles.png"));
-        final EditorController controller = new EditorController(model);
-        final EditorView view = new EditorView(controller, model);
-        controller.setView(view);
-    }
+    void tileHovered(Point point);
 
+
+    void pencilSelection(LinkedHashSet<Point> ps, Integer click);
+
+    void lineSelection(LinkedHashSet<Point> ps, Integer click);
+
+    void squareSelection(LinkedHashSet<Point> ps, Integer click);
+
+    void fillSelection(LinkedHashSet<Point> ps, Integer click);
 }
