@@ -478,11 +478,10 @@ public class EditorView extends javax.swing.JFrame {
 
         //</editor-fold>
     }
-
+    
     private void initLevelView() {
         JLevelView a = new JLevelView(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()), model.getTileSetLevelView(), model.getZoomLevel(), model.getSelectedTile());
         a.addListener(controller);
-
         editorContainer.setLayout(new BorderLayout());
         editorContainer.add(a, BorderLayout.CENTER);
 
@@ -512,7 +511,6 @@ public class EditorView extends javax.swing.JFrame {
                 model.setScrollPos(pt);
             }
         });
-
     }
 
     private void initMenuBar() {
@@ -673,7 +671,6 @@ public class EditorView extends javax.swing.JFrame {
         this.statusBarY = new JLabel();
         statusBar.add(this.statusBarY);
         this.statusBarY.setText(this.statusBarX.getText() + ":" + point.y);
-
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
 
         x = new JLabel();
@@ -715,7 +712,6 @@ public class EditorView extends javax.swing.JFrame {
         this.hoveredTile.setHorizontalTextPosition(JLabel.LEFT);
         this.hoveredTile.setIcon(model.getTiles().get(tile));
         this.hoveredTile.setIconTextGap(5);
-
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
 
         // selected tile
@@ -970,9 +966,7 @@ public class EditorView extends javax.swing.JFrame {
         this.repaint();
 
     }
-
-    /**
-     * Spawn a message box, useful for printing errors or warnings.
+    /*
      *
      * @param type "ERROR", "WARNING" and any other value for a regular info
      * box.

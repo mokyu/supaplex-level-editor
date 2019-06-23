@@ -288,7 +288,6 @@ public class JLevelView extends JPanel implements MouseListener, MouseMotionList
             fill(this.getNeighbour(node, JLevelView.TILE_WEST));
         }
     }
-
     private Point parseMouseCoords(MouseEvent e) {
         if (e.getX() < (TILE_SIZE * getZoomLevel()) || e.getX() >= (TILE_SIZE * getZoomLevel() * 61)) {
             return null;

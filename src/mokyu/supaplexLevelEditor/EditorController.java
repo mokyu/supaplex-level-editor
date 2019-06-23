@@ -562,6 +562,7 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         for (int x = 0; x < 60; x++) {
             for (int y = 0; y < 24; y++) {
                 if (model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getTile(new Point(x, y)).equals(StandardTiles.EXIT)) {
+
                     count++;
                 }
             }
@@ -586,6 +587,7 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         for (int x = 0; x < 60; x++) {
             for (int y = 0; y < 24; y++) {
                 if (model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getTile(new Point(x, y)).equals(StandardTiles.INFOTRON)) {
+
                     count++;
                 }
             }
