@@ -33,59 +33,43 @@ import mokyu.libsupaplex.*;
  *
  * @author Mokyu
  */
-public class EditorModel implements PropertyChangeListener {
-
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-
-    // listener 
-    public interface Listener {
-
-        public void modelChanged();
-    }
-    private final List<Listener> listeners = new ArrayList<>();
-
-    public void addListener(EditorModel.Listener listener) {
-        listeners.remove(listener);
-        listeners.add(listener);
-    }
-
-    public void removeListener(EditorModel.Listener listener) {
-        listeners.remove(listener);
-    }
-
-    public void fireChanged() {
-        listeners.forEach((listener) -> {
-            listener.modelChanged();
-        });
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent e) {
-        // pass property change to Controller
-        pcs.firePropertyChange(e);
-    }
-
-    /**
-     * Register controller to this.
-     *
-     * @param e Change event
-     */
-    public void addPropertyChangeListener(PropertyChangeListener e) {
-        pcs.addPropertyChangeListener(e);
-    }
-
+public class EditorModel {
     // properties
     private Supaplex supaplex;
     private Properties properties;
     private boolean dataChanged;
-    private HashMap<Tile, ImageIcon> tileSet;
-
+    private HashMap<Tile, ImageIcon> tileSetLevelView;
+    private HashMap<Tile, ImageIcon> tiles;
     // UI State related stuff
     private Integer currentLevelSlot;
     private Integer currentSpecialPort;
     private Point currentHoveredPoint;
     private java.awt.Point scrollPos;
     private Tile selectedTile;
+    private EditorController.drawMode drawMode;
+    private Integer zoomLevel;
+
+    public Integer getZoomLevel() {
+        return zoomLevel;
+    }
+
+    public void setZoomLevel(Integer zoomLevel) {
+        if (zoomLevel == 0 || zoomLevel > 4) {   // ignore zoom above 4 and below 1
+            return;
+        } else if (zoomLevel == -1) { // set default on -1
+            zoomLevel = 2;
+        }
+        this.zoomLevel = zoomLevel;
+        
+    }
+
+    public EditorController.drawMode getDrawMode() {
+        return drawMode;
+    }
+
+    public void setDrawMode(EditorController.drawMode drawMode) {
+        this.drawMode = drawMode;
+    }
 
     public Tile getSelectedTile() {
         return selectedTile;
@@ -94,6 +78,7 @@ public class EditorModel implements PropertyChangeListener {
     public void setSelectedTile(Tile selectedTile) {
         this.selectedTile = selectedTile;
     }
+
     public java.awt.Point getScrollPos() {
         return scrollPos;
     }
@@ -101,7 +86,7 @@ public class EditorModel implements PropertyChangeListener {
     public void setScrollPos(java.awt.Point scrollPos) {
         this.scrollPos = scrollPos;
     }
-    
+
     public Point getCurrentHoveredPoint() {
         return currentHoveredPoint;
     }
@@ -109,7 +94,6 @@ public class EditorModel implements PropertyChangeListener {
     public void setCurrentHoveredPoint(Point p) {
         if (this.currentHoveredPoint.x != p.x || this.currentHoveredPoint.y != p.y) { // don't redraw when we hover over the same tile.
             this.currentHoveredPoint = p;
-            pcs.firePropertyChange("HoveredPoint", 0, 1);
         }
     }
 
@@ -122,7 +106,6 @@ public class EditorModel implements PropertyChangeListener {
     public void setCurrentSpecialPort(Integer currentSpecialPort) {
         Integer old = getCurrentSpecialPort();
         this.currentSpecialPort = currentSpecialPort;
-        pcs.firePropertyChange("currentSpecialPort", old, currentSpecialPort);
     }
 
     /**
@@ -142,7 +125,6 @@ public class EditorModel implements PropertyChangeListener {
     public void setCurrentLevelSlot(Integer currentLevelSlot) {
         Integer old = getCurrentLevelSlot();
         this.currentLevelSlot = currentLevelSlot;
-        pcs.firePropertyChange("currentLevelSlot", old, currentLevelSlot);
     }
 
     public Integer getCurrentLevelSlot() {
@@ -151,14 +133,15 @@ public class EditorModel implements PropertyChangeListener {
 
     public EditorModel() {
         supaplex = new Supaplex();
-        supaplex.init();
         properties = new Properties();
         dataChanged = false;
-        currentLevelSlot = 1;
+        currentLevelSlot = 0;
         currentSpecialPort = 1;
-        scrollPos = new java.awt.Point(0,0);
-        currentHoveredPoint = new Point(0,0);
-        selectedTile = TileInfo.BASE;
+        scrollPos = new java.awt.Point(0, 0);
+        currentHoveredPoint = new Point(0, 0);
+        selectedTile = StandardTiles.BASE;
+        drawMode = EditorController.drawMode.pencil;
+        zoomLevel = 2;
         File props = new File("config.properties");
         if (props.exists()) {
             InputStream fstream;
@@ -166,7 +149,6 @@ public class EditorModel implements PropertyChangeListener {
                 fstream = new FileInputStream(props);
                 properties.load(fstream);
                 fstream.close();
-                return;
             } catch (FileNotFoundException ex) {
                 properties.setProperty("language", "EN");
                 System.out.println(properties.getProperty("language"));
@@ -176,13 +158,6 @@ public class EditorModel implements PropertyChangeListener {
         } else {
             setProperty("language", "EN");
         }
-    }
-
-    /**
-     * Register objects to the PCS post construction
-     */
-    public void init() {
-        supaplex.addPropertyChangeListener(this);
     }
 
     /**
@@ -210,7 +185,6 @@ public class EditorModel implements PropertyChangeListener {
         } else {
             this.supaplex = supaplex;
         }
-        pcs.firePropertyChange("LevelCollection", 0, 1);
     }
 
     /**
@@ -250,15 +224,14 @@ public class EditorModel implements PropertyChangeListener {
         } catch (IOException ex) {
             Logger.getLogger(EditorModel.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
-        pcs.firePropertyChange("Properties", 0, 1);
     }
 
     /**
      *
      * @return
      */
-    public HashMap<Tile, ImageIcon> getTileSet() {
-        return tileSet;
+    public HashMap<Tile, ImageIcon> getTileSetLevelView() {
+        return tileSetLevelView;
     }
 
     /**
@@ -266,8 +239,15 @@ public class EditorModel implements PropertyChangeListener {
      *
      * @param tileSet
      */
-    public void setTileSet(HashMap<Tile, ImageIcon> tileSet) {
-        this.tileSet = tileSet;
+    public void setTileSetLevelView(HashMap<Tile, ImageIcon> tileSet) {
+        this.tileSetLevelView = tileSet;
     }
 
+    public HashMap<Tile, ImageIcon> getTiles() {
+        return tiles;
+    }
+
+    public void setTiles(HashMap<Tile, ImageIcon> tiles) {
+        this.tiles = tiles;
+    }
 }

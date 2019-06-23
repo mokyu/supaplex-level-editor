@@ -16,6 +16,8 @@
  */
 package mokyu.libsupaplex;
 
+import java.nio.ByteBuffer;
+
 /**
  *
  * @author Mokyu
@@ -41,9 +43,6 @@ public class GravitySwitchPort {
      * @throws RuntimeException
      */
     public GravitySwitchPort(int x, int y, boolean gravity, boolean freezeZonks, boolean freezeEnemy, byte padding) throws RuntimeException {
-        /*if (x >= 60 || x < 0 || y >= 24 || y < 0) {
-            throw new RuntimeException("Invalid coordinates given. Expected x value between 0 and 60 and y value between 0 and 24.");
-        }*/
         this.x = x;
         this.y = y;
         this.gravity = gravity;
@@ -95,7 +94,7 @@ public class GravitySwitchPort {
      * @param padding
      */
     public GravitySwitchPort(Integer location, boolean gravity, boolean freezeZonks, boolean freezeEnemy, byte padding) {
-        this(location % 60 / 2, location / 60 / 2, gravity, freezeZonks, freezeEnemy, padding);
+        this(location / 2 % 60, location / 60 / 2, gravity, freezeZonks, freezeEnemy, padding);
     }
 
     public void setX(int newX) throws RuntimeException {
@@ -118,5 +117,31 @@ public class GravitySwitchPort {
 
     public int getY() {
         return this.y;
+    }
+
+    public byte[] toByteArray() {
+        ByteBuffer b = ByteBuffer.allocate(6);
+        Integer coord = 2 * (this.x + (this.y * 60));
+        ByteBuffer crd = ByteBuffer.allocate(4);
+        crd.putInt(coord);
+        b.put(crd.array()[2]);
+        b.put(crd.array()[3]);
+        if (this.gravity) {
+            b.put((byte) 0x1);
+        } else {
+            b.put((byte) 0x0);
+        }
+        if (this.freezeZonks) {
+            b.put((byte) 0x2);
+        } else {
+            b.put((byte) 0x0);
+        }
+        if (this.freezeEnemy) {
+            b.put((byte) 0x1);
+        } else {
+            b.put((byte) 0x0);
+        }
+        b.put((byte) 0xff);
+        return b.array();
     }
 }

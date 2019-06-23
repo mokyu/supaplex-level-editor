@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.ByteBuffer;
 import java.beans.*;
+import java.nio.ByteOrder;
 
 /**
  *
@@ -31,7 +32,6 @@ import java.beans.*;
  */
 public class Level {
 
-    private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private Map<Point, Tile> level;
     private byte[] padding0;
     private byte gravity;
@@ -42,11 +42,15 @@ public class Level {
     private byte gravitySwitchPorts;
     private byte[] specialPortDataRaw;
     private Map<Integer, GravitySwitchPort> specialPortData;
-    private byte[] speedfixDemoInfo;
 
-    public void addPropertyChangeListener(PropertyChangeListener pcl) {
-        pcs.addPropertyChangeListener(pcl);
+    public byte[] getSpecialPortDataBytes() {
+        ByteBuffer b = ByteBuffer.allocate(60);
+        for(GravitySwitchPort port: specialPortData.values()) {
+            b.put(port.toByteArray());
+        }
+        return b.array();
     }
+    private byte[] speedfixDemoInfo;
 
     /**
      * Generates a completely fresh empty level.
@@ -135,7 +139,6 @@ public class Level {
     final public void setTile(Point point, Tile tile) {
         Tile old = this.getTile(point);
         this.level.put(point, tile);
-        pcs.firePropertyChange("Level.level", 0, 1);
     }
 
     /**
@@ -150,7 +153,6 @@ public class Level {
         } else {
             this.gravity = 0x0;
         }
-        pcs.firePropertyChange("Level.gravity", old, value);
     }
 
     /**
@@ -181,7 +183,6 @@ public class Level {
     final public void setSpeedFixVersion(byte version) {
         byte old = getSpeedFixVersion();
         this.speedFixVersion = version;
-        pcs.firePropertyChange("Level.speedFixVersion", old, version);
     }
 
     /**
@@ -209,7 +210,6 @@ public class Level {
         } else {
             this.rawName = newName.toUpperCase().getBytes(StandardCharsets.US_ASCII); // Supaplex only renders uppercase characters accurately
         }
-        pcs.firePropertyChange("Level.rawName", 0, 1);
 
     }
 
@@ -226,7 +226,6 @@ public class Level {
         } else {
             this.freezeZonks = 0x0;
         }
-        pcs.firePropertyChange("Level.freezeZonks", 0, 1);
     }
 
     /**
@@ -251,7 +250,6 @@ public class Level {
             throw new RuntimeException("Invalid number of infotrons given. Expected value between 0 and 255");
         }
         this.requiredInfontrons = (byte) infotrons;
-        pcs.firePropertyChange("Level.requiredInfotrons", 0, 1);
     }
 
     /**
@@ -276,7 +274,6 @@ public class Level {
             throw new RuntimeException("Invalid number of ports given. Expected value between 0 and 255");
         }
         this.gravitySwitchPorts = (byte) ports;
-        pcs.firePropertyChange("Level.gravitySwitchPorts", 0, 1);
     }
 
     /**
@@ -297,7 +294,6 @@ public class Level {
     final public void setGravitySwitchPortData(int port, GravitySwitchPort portData) {
         GravitySwitchPort old = getGravitySwitchPortData(port);
         this.specialPortData.put(port, portData);
-        pcs.firePropertyChange("Level.specialPortData", 0, 1);
     }
 
     /**
@@ -331,7 +327,6 @@ public class Level {
             throw new RuntimeException("Expected 4 bytes but invalid amount given");
         }
         this.speedfixDemoInfo = data;
-        pcs.firePropertyChange("Level.speedfixDemoInfo", 0, 1);
     }
 
     /**
@@ -358,12 +353,11 @@ public class Level {
             stream.write(this.freezeZonks);
             stream.write(this.requiredInfontrons);
             stream.write(this.gravitySwitchPorts);
-            stream.write(this.specialPortDataRaw);
+            stream.write(this.getSpecialPortDataBytes());
             stream.write(this.speedfixDemoInfo);
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return stream.toByteArray();
     }
 

@@ -21,15 +21,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.io.*;
-import java.beans.*;
 
 /**
  *
  * @author Mokyu
  */
-public class Supaplex extends TileInfo implements PropertyChangeListener {
+public class Supaplex extends StandardTiles {
 
-    private final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private final Map<Integer, Level> levels;
 
     /**
@@ -41,21 +39,6 @@ public class Supaplex extends TileInfo implements PropertyChangeListener {
         for(int i = 0; i < 111; i++) {
             this.levels.put(i, new Level());
         }
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent e) {
-        pcs.firePropertyChange(e);
-    }
-
-    /**
-     * Register your parent class here (e.g. a Model implementing
-     * PropertyChangeListener)
-     *
-     * @param e your class
-     */
-    public void addPropertyChangeListener(PropertyChangeListener e) {
-        pcs.addPropertyChangeListener(e);
     }
 
     /**
@@ -76,11 +59,9 @@ public class Supaplex extends TileInfo implements PropertyChangeListener {
         for (int i = 0; i < 111; i++) {
             byte[] lvl = Arrays.copyOfRange(file, i * 1536, i * 1536 + 1536);
             Level l = new Level(lvl);
-            l.addPropertyChangeListener(this);
             this.levels.put(i, l);
 
         }
-        pcs.firePropertyChange("Supaplex.levels", 0, 1); // we can't compare an old hashmap with a new hashmap so just compare it with a new empty one
 
     }
 
@@ -120,17 +101,10 @@ public class Supaplex extends TileInfo implements PropertyChangeListener {
      * @param level Level object
      */
     public void setLevel(int index, Level level) {
-        level.addPropertyChangeListener(this);
         Level old = getLevel(index);
         this.levels.put(index, level);
-        pcs.firePropertyChange("Supaplex.levels", 0, 1);
     }
     /**
      * Call this when the Supaplex() instructor is used to properly assign listeners
      */
-    public void init() {
-        for(int i = 0; i < 111; i++) {
-            this.levels.get(i).addPropertyChangeListener(this);
-        }
-    }
 }

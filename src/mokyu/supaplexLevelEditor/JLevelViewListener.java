@@ -15,14 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package mokyu.supaplexLevelEditor;
+
+import java.util.LinkedHashSet;
 import mokyu.libsupaplex.*;
+
 /**
  *
  * @author Mokyu
  */
 public interface JLevelViewListener {
+
     void tileHovered(Point point);
-    void tileLeftClicked(Point point);
-    void tileRightClicked(Point point);
-    void tileGroupSelected(Point start, Point end);
+
+
+    void pencilSelection(LinkedHashSet<Point> ps, Integer click);
+
+    void lineSelection(LinkedHashSet<Point> ps, Integer click);
+
+    void squareSelection(LinkedHashSet<Point> ps, Integer click);
+
+    void fillSelection(LinkedHashSet<Point> ps, Integer click);
 }

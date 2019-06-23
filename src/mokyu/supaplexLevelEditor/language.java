@@ -34,7 +34,12 @@ public class language {
      */
     private static final HashMap<String, HashMap<String, String>> library = new HashMap<>();
 
+    public static HashMap<String, HashMap<String, String>> getLibrary() {
+        return library;
+    }
+
     public static void setComponentTranslation(String language, Object o) {
+
         String translation;
         switch (o.getClass().getName()) {
             case "javax.swing.JButton":
@@ -43,20 +48,32 @@ public class language {
                 break;
             case "javax.swing.JMenuItem":
                 translation = getFromTag(language, ((JMenuItem) o).getName());
+                if (translation == null) {
+                    return;
+                }
                 ((JMenuItem) o).setText(translation);
                 break;
             case "javax.swing.JMenu":
                 translation = getFromTag(language, ((JMenu) o).getName());
+                if (translation == null) {
+                    return;
+                }
                 ((JMenu) o).setText(translation);
                 break;
             case "javax.swing.JLabel":
                 translation = getFromTag(language, ((JLabel) o).getName());
+                if (translation == null) {
+                    return;
+                }
                 ((JLabel) o).setText(translation);
                 break;
         }
     }
 
     public static String getFromTag(String language, String tag) {
+        if(tag == null) {
+            return null;
+        }
         HashMap<String, String> translations = library.get(language);
         if (translations == null || translations.isEmpty()) {
             return tag + " " + language;
@@ -70,8 +87,8 @@ public class language {
     }
 
     /**
-     * Parses all properties files in the ./translations folder and populates the
-     * library hashmap
+     * Parses all properties files in the ./translations folder and populates
+     * the library hashmap
      *
      * @throws java.io.FileNotFoundException Throws when ./languages folder does
      * not exist
@@ -87,10 +104,12 @@ public class language {
         File[] listing = dir.listFiles();
         if (listing != null) {
             for (File item : listing) {
-                InputStream fstream = new FileInputStream(item);
-                Properties prop = new Properties();
-                prop.load(fstream);
-                fstream.close();
+                Properties prop;
+                try (InputStream fstream = new FileInputStream(item)) {
+                    prop = new Properties();
+                    prop.load(new InputStreamReader(fstream, "UTF-8"));
+                    fstream.close();
+                }
                 library.put(prop.getProperty("language"), new HashMap<>());
                 Set<String> keys = prop.stringPropertyNames();
                 for (String key : keys) {
