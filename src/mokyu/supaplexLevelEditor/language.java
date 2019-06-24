@@ -29,7 +29,8 @@ public class language {
     /**
      * Automatically assigns language specific Text for UI items
      *
-     * @param language ISO 639-1 language as string e.g.: "en"
+     * @param language User defined string representing the language e.g.
+     * "Nederlands (Dutch)"
      * @param o JComponent like JButton, JMenu, JMenuItem, jLabel
      */
     private static final HashMap<String, HashMap<String, String>> library = new HashMap<>();
@@ -38,6 +39,16 @@ public class language {
         return library;
     }
 
+    /**
+     * The objects 'name' field is used to find the appropriate text based on
+     * the language and uses it to set the text field of the component. When no
+     * translation is found, the 'name' of the object is stored in the text
+     * field together with the target language.
+     *
+     * @param language String containing a language name. see "english
+     * (us).properties" "language = English"
+     * @param o JButton, JMenuItem, JLabel, JMenu
+     */
     public static void setComponentTranslation(String language, Object o) {
 
         String translation;
@@ -69,9 +80,14 @@ public class language {
                 break;
         }
     }
-
+    /**
+     * Some elements do not have a name field or we just need to get the translation string itself (e.g. confirmation boxes)
+     * @param language target language
+     * @param tag the identifier used to get the translation (e.g.: "label_statusBar_noMurphyWarning")
+     * @return 
+     */
     public static String getFromTag(String language, String tag) {
-        if(tag == null) {
+        if (tag == null) {
             return null;
         }
         HashMap<String, String> translations = library.get(language);

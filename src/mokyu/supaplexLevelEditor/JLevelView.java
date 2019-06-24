@@ -100,7 +100,9 @@ public class JLevelView extends JPanel implements MouseListener, MouseMotionList
         this(0, 0, JLevelView.LEVEL_HEIGHT, JLevelView.LEVEL_WIDTH, level, zoom, tileSet, tile);
         init();
     }
-
+    /**
+     * Assign listeners
+     */
     private void init() {
         addMouseMotionListener(this);
         addMouseListener(this);

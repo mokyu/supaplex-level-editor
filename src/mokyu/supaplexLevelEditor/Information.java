@@ -17,7 +17,7 @@
 package mokyu.supaplexLevelEditor;
 
 /**
- *
+ * Used for easily setting version information
  * @author Mokyu
  */
 public class Information {

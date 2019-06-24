@@ -30,6 +30,7 @@ public class Editor {
             language.getTranslations();
         } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
         final EditorModel model = new EditorModel();
         model.setTileSetLevelView(iconGenerator.getTilesetFromFile("resources/tiles.png"));

@@ -32,7 +32,6 @@ public class Supaplex extends StandardTiles {
 
     /**
      * Generate a Supaplex object with empty levels.
-     * To prevent leaking `this` you have to manually call Supaplex.init() after creation;
      */
     public Supaplex() {
         this.levels = new HashMap<>();
@@ -47,7 +46,7 @@ public class Supaplex extends StandardTiles {
      * @param uri Path to a valid LEVELS.DAT file. These are *not* individual
      * levels (1536 byte .SP files)
      * @throws IOException General I/O file errors
-     * @throws Exception When file size is not exactly 170496 bytes in size
+     * @throws Exception When file size is not exactly 170496 bytes in size (111 * 1536)
      */
     public void loadLevelPackFromFile(String uri) throws IOException, Exception {
         Path path = Paths.get(uri);
@@ -104,7 +103,4 @@ public class Supaplex extends StandardTiles {
         Level old = getLevel(index);
         this.levels.put(index, level);
     }
-    /**
-     * Call this when the Supaplex() instructor is used to properly assign listeners
-     */
 }
