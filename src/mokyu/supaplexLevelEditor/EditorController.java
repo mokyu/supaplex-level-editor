@@ -36,7 +36,7 @@ import java.nio.file.*;
  *
  * @author Mokyu
  */
-public class EditorController implements ActionListener, PropertyChangeListener, FocusListener, ChangeListener, ItemListener, JLevelViewListener {
+public class EditorController implements ActionListener, FocusListener, ItemListener, JLevelViewListener {
 
     private final EditorModel model;
     private EditorView view;
@@ -71,11 +71,6 @@ public class EditorController implements ActionListener, PropertyChangeListener,
                 comboBoxHandler((JComboBox) e.getSource());
                 break;
         }
-        view.refresh();
-    }
-
-    @Override
-    public void propertyChange(PropertyChangeEvent e) {
         view.refresh();
     }
 
@@ -230,11 +225,6 @@ public class EditorController implements ActionListener, PropertyChangeListener,
 
         }
         view.refresh();
-    }
-
-    @Override
-    public void stateChanged(ChangeEvent e) {
-        System.out.println("State changed");
     }
 
     private void buttonHandler(JButton source) {
@@ -403,11 +393,17 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         }
         view.refresh();
     }
-
+    /**
+     * Get the current level slot
+     * @return 
+     */
     public Integer getCurrentLevelSLot() {
         return model.getCurrentLevelSlot();
     }
-
+    /**
+     * set the current level slot
+     * @param value 
+     */
     public void setCurrentLevelSlot(int value) {
         model.setCurrentLevelSlot(value);
         view.refresh();
@@ -465,13 +461,16 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         }
         return list;
     }
-
+    /**
+     * 
+     * @param point 
+     */
     @Override
     public void tileHovered(Point point) {
         model.setCurrentHoveredPoint(point);
         Tile tile = model.getLevelCollection().getLevel(this.getCurrentLevelSLot()).getTile(point);
         // we are gonna directly manipulate the view to update the x/y coordinates for this instead of redrawing the whole UI.
-        // calling view.refresh() here causes drag events to sometimes not register.
+        // calling view.refresh() for mouse movement sometimes drops other mouse input.
         view.statusBarX.setText("x:" + point.x);
         view.statusBarY.setText("y:" + point.y);
         language.setComponentTranslation(this.getPreferredLanguage(), view.hoveredTile);
@@ -556,7 +555,10 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         model.setDataChanged(true);
         view.refresh();
     }
-
+    /**
+     * scan the level for exit tiles
+     * @return 
+     */
     public Integer getExitCount() {
         Integer count = 0;
         for (int x = 0; x < 60; x++) {
@@ -569,7 +571,10 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         }
         return count;
     }
-
+    /**
+     * scan the level for murphy tiles
+     * @return 
+     */
     public Integer getMurphyCount() {
         Integer count = 0;
         for (int x = 0; x < 60; x++) {
@@ -581,7 +586,10 @@ public class EditorController implements ActionListener, PropertyChangeListener,
         }
         return count;
     }
-
+    /**
+     * scan the level for infotron tiles
+     * @return 
+     */
     public Integer getInfotronCount() {
         Integer count = 0;
         for (int x = 0; x < 60; x++) {

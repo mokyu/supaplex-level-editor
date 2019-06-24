@@ -43,6 +43,10 @@ public class Level {
     private byte[] specialPortDataRaw;
     private Map<Integer, GravitySwitchPort> specialPortData;
 
+    /**
+     * Convert all 10 special ports into a byte array
+     * @return 
+     */
     public byte[] getSpecialPortDataBytes() {
         ByteBuffer b = ByteBuffer.allocate(60);
         for(GravitySwitchPort port: specialPortData.values()) {
@@ -53,7 +57,9 @@ public class Level {
     private byte[] speedfixDemoInfo;
 
     /**
-     * Generates a completely fresh empty level.
+     * Generates a completely fresh empty level object.
+     * speedfixversion is set to 0x20
+     * other padding bytes are set to 0x00
      */
     public Level() {
         this.level = new HashMap<>();

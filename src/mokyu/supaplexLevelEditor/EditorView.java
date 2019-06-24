@@ -30,8 +30,8 @@ import java.util.*;
  */
 public class EditorView extends javax.swing.JFrame {
 
-    private EditorController controller;
-    private EditorModel model;
+    private final EditorController controller;
+    private final EditorModel model;
 
     public EditorView(EditorController controller, EditorModel model) {
         this.controller = controller;
@@ -478,7 +478,7 @@ public class EditorView extends javax.swing.JFrame {
 
         //</editor-fold>
     }
-    
+
     private void initLevelView() {
         JLevelView a = new JLevelView(model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()), model.getTileSetLevelView(), model.getZoomLevel(), model.getSelectedTile());
         a.addListener(controller);
@@ -490,9 +490,8 @@ public class EditorView extends javax.swing.JFrame {
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         editorContainer.add(scroll);
 
-        // set scroll position
+        /* We need to attach listeners to the scroll bars because we need to restore scroll position when redrawing the UI */
         scroll.getViewport().setViewPosition(model.getScrollPos());
-        // add listener to scrollbars
         scroll.getHorizontalScrollBar().addAdjustmentListener(new AdjustmentListener() {
             @Override
             public void adjustmentValueChanged(AdjustmentEvent e) {
@@ -526,63 +525,62 @@ public class EditorView extends javax.swing.JFrame {
         helpMenu = new JMenu();
         helpMenu.setName("menu_help");
         language.setComponentTranslation(controller.getPreferredLanguage(), helpMenu);
-        
+
         menuItem = new JMenuItem();
-        menuItem.setName("menu_file_newLevelCol");                                  // New level collection
+        menuItem.setName("menu_file_newLevelCol");                              // New level collection
         fileMenu.add(menuItem);
-        
+
         fileMenu.addSeparator();                                                // --------------------
 
         menuItem = new JMenuItem();
-        menuItem.setName("menu_file_loadLevelCol");                                 // Load level collection
+        menuItem.setName("menu_file_loadLevelCol");                             // Load level collection
         fileMenu.add(menuItem);
-        
+
         fileMenu.addSeparator();                                                // --------------------
 
         menuItem = new JMenuItem();
-        menuItem.setName("menu_file_saveLevelCol");                                 // Save Level collection
+        menuItem.setName("menu_file_saveLevelCol");                             // Save Level collection
         fileMenu.add(menuItem);
-        
+
         fileMenu.addSeparator();                                                // --------------------
 
         menuItem = new JMenuItem();
-        menuItem.setName("menu_file_exportLevel");                                  // Export current level
+        menuItem.setName("menu_file_exportLevel");                              // Export current level
         fileMenu.add(menuItem);
-        
+
         menuItem = new JMenuItem();
-        menuItem.setName("menu_file_importLevel");                                  // Import current level
+        menuItem.setName("menu_file_importLevel");                              // Import current level
         fileMenu.add(menuItem);
-        
+
         fileMenu.addSeparator();                                                // --------------------
 
         menuItem = new JMenuItem();
-        menuItem.setName("menu_file_exit");                                         // Exit
+        menuItem.setName("menu_file_exit");                                     // Exit
         fileMenu.add(menuItem);
-        
+
         menuItem = new JMenuItem();
-        menuItem.setName("menu_view_currZoom");                                     // Current Zoom Level
+        menuItem.setName("menu_view_currZoom");                                 // Current Zoom Level
         viewMenu.add(menuItem);
-        
+
         viewMenu.addSeparator();                                                // --------------------
 
         menuItem = new JMenuItem();
-        menuItem.setName("menu_view_decZoom");                                      // Decrease Zoom Level
+        menuItem.setName("menu_view_decZoom");                                  // Decrease Zoom Level
         viewMenu.add(menuItem);
-        
-        menuItem = new JMenuItem();
-        menuItem.setName("menu_view_incZoom");                                      // Increase Zoom level
-        viewMenu.add(menuItem);
-        
-        menuItem = new JMenuItem();
-        menuItem.setName("menu_view_resZoom");                                      // Reset Zoom level
-        viewMenu.add(menuItem);
-        
-                menuItem = new JMenuItem();
-        menuItem.setName("menu_help_language");                                        // Languages
-        helpMenu.add(menuItem);
-        
 
-        for(String lang: language.getLibrary().keySet()) {
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_view_incZoom");                                  // Increase Zoom level
+        viewMenu.add(menuItem);
+
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_view_resZoom");                                  // Reset Zoom level
+        viewMenu.add(menuItem);
+
+        menuItem = new JMenuItem();
+        menuItem.setName("menu_help_language");                                 // Languages
+        helpMenu.add(menuItem);
+
+        for (String lang : language.getLibrary().keySet()) {
             JRadioButtonMenuItem item = new JRadioButtonMenuItem();
             item.setName("menu_help_languageItem");
             item.setSelected(controller.getPreferredLanguage().equals(lang));
@@ -590,24 +588,24 @@ public class EditorView extends javax.swing.JFrame {
             item.addActionListener(controller);
             helpMenu.add(item);
         }
-        
+
         helpMenu.addSeparator();                                                // --------------------
 
         menuItem = new JMenuItem();
-        menuItem.setName("menu_help_about");                                        // About
+        menuItem.setName("menu_help_about");                                    // About
         helpMenu.add(menuItem);
-        
+
         menu.add(fileMenu);
         menu.add(viewMenu);
         menu.add(helpMenu);
-        
+
         for (int i = 0; i < fileMenu.getItemCount(); i++) {
             JMenuItem item = fileMenu.getItem(i);
             if (item != null) {
                 item.addActionListener(controller);
                 language.setComponentTranslation(controller.getPreferredLanguage(), item);
             }
-            
+
         }
         for (int i = 0; i < viewMenu.getItemCount(); i++) {
             JMenuItem item = viewMenu.getItem(i);
@@ -624,7 +622,7 @@ public class EditorView extends javax.swing.JFrame {
             }
         }
         this.setJMenuBar(menu);
-    } 
+    }
 
     private void initFrames() {
         toolContainer = new JPanel();
@@ -661,7 +659,6 @@ public class EditorView extends javax.swing.JFrame {
             point = new mokyu.libsupaplex.Point(0, 0);
             tile = StandardTiles.VOID;
         }
-        JLabel x;
 
         this.statusBarX = new JLabel();
         statusBar.add(this.statusBarX);
@@ -673,7 +670,7 @@ public class EditorView extends javax.swing.JFrame {
         this.statusBarY.setText(this.statusBarX.getText() + ":" + point.y);
         statusBar.add(Box.createRigidArea(new Dimension(10, 0)));
 
-        x = new JLabel();
+        JLabel x = new JLabel();
         x.setName("label_statusBar_noExitWarning");
         statusBar.add(x);
         labels.put(x.getName(), x);
@@ -695,8 +692,7 @@ public class EditorView extends javax.swing.JFrame {
         x = new JLabel();
         x.setName("label_statusBar_notEnoughInfotronsWarning");
         language.setComponentTranslation(controller.getPreferredLanguage(), x);
-        labels.put(x.getName(), x);
-        x.setName(x.getText() + " (" + controller.getInfotronCount() + "/" + model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getRequiredInfotrons() + ")]");
+        x.setText(x.getText() + " (" + controller.getInfotronCount() + "/" + model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getRequiredInfotrons() + ")]");
         x.setVisible((controller.getInfotronCount() < model.getLevelCollection().getLevel(controller.getCurrentLevelSLot()).getRequiredInfotrons()));
         statusBar.add(x);
 
@@ -926,6 +922,7 @@ public class EditorView extends javax.swing.JFrame {
 
         // create the comboboxes
         //</editor-fold>
+       
         //<editor-fold defaultstate="collapsed" desc="Special port flags">
         // create the checkboxes
         checkBox = new JCheckBox(language.getFromTag(controller.getPreferredLanguage(), "checkBox_levelData_specialPortToggleGravity"), port.getGravity());
@@ -958,7 +955,8 @@ public class EditorView extends javax.swing.JFrame {
     }
 
     /**
-     * Called when model has changed and the UI needs to be updated. Thread Safe
+     * When we make changes to the model we will redraw the whole UI.
+     * Because our UI is relatively simple we can get away with it with minimal performance loss
      */
     public void refresh() {
         this.getContentPane().removeAll();
@@ -966,11 +964,12 @@ public class EditorView extends javax.swing.JFrame {
         this.repaint();
 
     }
+
     /*
-     *
+     * Spawn a mess
      * @param type "ERROR", "WARNING" and any other value for a regular info
      * box.
-     * @param content
+     * @param content just a string
      */
     public void spawnMsgBox(String type, String content) {
         switch (type) {
@@ -986,7 +985,7 @@ public class EditorView extends javax.swing.JFrame {
         }
 
     }
-
+    
     public void spawnAboutBox() {
         About about = new About();
         about.versionLabel.setText(Information.VERSION);

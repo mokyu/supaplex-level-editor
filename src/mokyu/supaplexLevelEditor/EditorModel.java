@@ -24,16 +24,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 import java.util.logging.Logger;
-import java.beans.*;
 import javax.swing.ImageIcon;
 import mokyu.libsupaplex.*;
 
 /**
- * Don't forget to call init() after construction
  *
  * @author Mokyu
  */
 public class EditorModel {
+
     // properties
     private Supaplex supaplex;
     private Properties properties;
@@ -48,11 +47,17 @@ public class EditorModel {
     private Tile selectedTile;
     private EditorController.drawMode drawMode;
     private Integer zoomLevel;
-
+    /**
+     * return zoomLevel used by JLevelView
+     * @return 
+     */
     public Integer getZoomLevel() {
         return zoomLevel;
     }
-
+    /**
+     * Set zoom level Integer from 1-4
+     * @param zoomLevel 
+     */
     public void setZoomLevel(Integer zoomLevel) {
         if (zoomLevel == 0 || zoomLevel > 4) {   // ignore zoom above 4 and below 1
             return;
@@ -60,29 +65,57 @@ public class EditorModel {
             zoomLevel = 2;
         }
         this.zoomLevel = zoomLevel;
-        
-    }
 
+    }
+    /**
+     * get the draw mode
+     * @return 
+     */
     public EditorController.drawMode getDrawMode() {
         return drawMode;
     }
-
+    /**
+     * Set the current draw mode
+     * @param drawMode 
+     */
     public void setDrawMode(EditorController.drawMode drawMode) {
         this.drawMode = drawMode;
     }
 
+    /**
+     * Get the currently selected Tile
+     *
+     * @return
+     */
     public Tile getSelectedTile() {
         return selectedTile;
     }
 
+    /**
+     * Set which tile is selected in the statusBar panel
+     *
+     * @param selectedTile
+     */
     public void setSelectedTile(Tile selectedTile) {
         this.selectedTile = selectedTile;
     }
 
+    /**
+     * Get the currently saved scroll position
+     *
+     * @return
+     */
     public java.awt.Point getScrollPos() {
         return scrollPos;
     }
 
+    /**
+     * Set the current scroll position, when the user moves the scroll bar you
+     * want to call this so the scroll position doesn't get lost on the next gui
+     * refresh.
+     *
+     * @param scrollPos
+     */
     public void setScrollPos(java.awt.Point scrollPos) {
         this.scrollPos = scrollPos;
     }
@@ -92,14 +125,13 @@ public class EditorModel {
     }
 
     public void setCurrentHoveredPoint(Point p) {
-        if (this.currentHoveredPoint.x != p.x || this.currentHoveredPoint.y != p.y) { // don't redraw when we hover over the same tile.
+        if (this.currentHoveredPoint.x != p.x || this.currentHoveredPoint.y != p.y) {
             this.currentHoveredPoint = p;
         }
     }
 
     /**
-     * Set current selected special port for modification, triggers property
-     * change
+     * Set current special port
      *
      * @param currentSpecialPort
      */
@@ -118,7 +150,7 @@ public class EditorModel {
     }
 
     /**
-     * Change level slot, fired property change and notifies the controller.
+     * Change the current level slot.
      *
      * @param currentLevelSlot
      */
@@ -127,6 +159,11 @@ public class EditorModel {
         this.currentLevelSlot = currentLevelSlot;
     }
 
+    /**
+     * Returns which level is currently opened in the editor.
+     *
+     * @return Integer containg the current levelslot (0-110)
+     */
     public Integer getCurrentLevelSlot() {
         return currentLevelSlot;
     }
@@ -161,7 +198,8 @@ public class EditorModel {
     }
 
     /**
-     * Set to true when there are changes to our data
+     * This value should be true when a user made a change that they might wish
+     * to save.
      *
      * @return
      */
@@ -169,6 +207,13 @@ public class EditorModel {
         return this.dataChanged;
     }
 
+    /**
+     * We set DataChanged to true when we make a change to a level. It's used to
+     * check whether or not show a popup when the user tries to attempt a
+     * destructive action with unsaved changes.
+     *
+     * @param value
+     */
     public void setDataChanged(boolean value) {
         this.dataChanged = value;
     }
@@ -188,10 +233,10 @@ public class EditorModel {
     }
 
     /**
-     * Retrieve Supaplex object. Modifying the return result requires calling
-     * setDataChanged(true) and fireChanged() manually
+     * Get the whole level collection, essentially a hashmap with getters and
+     * setters
      *
-     * @return The current Supaplex object.
+     * @return
      */
     public Supaplex getLevelCollection() {
         return this.supaplex;
@@ -201,7 +246,7 @@ public class EditorModel {
 
     /**
      * Get configuration property from config.properties
-     *
+     * Currently the only value in config.properties is our preffered language
      * @param key
      * @return String or null when key not found
      */
@@ -210,7 +255,7 @@ public class EditorModel {
     }
 
     /**
-     * Set configuration property in config.properties
+     * Set configuration property in config.properties, directly written to FS
      *
      * @param key the key to set
      * @param value they value belonging to the key
@@ -227,6 +272,9 @@ public class EditorModel {
     }
 
     /**
+     * We use two different tilesets, this tileset is used by the LevelView.
+     * When the user changes the zoom level the tiles get rescaled so we need 2
+     * copies, for the levelView and the GUI
      *
      * @return
      */
@@ -243,10 +291,20 @@ public class EditorModel {
         this.tileSetLevelView = tileSet;
     }
 
+    /**
+     * returns the tileset used by the GUI, always contains 16x16 images
+     *
+     * @return Hashmap with Tile and ImageIcons
+     */
     public HashMap<Tile, ImageIcon> getTiles() {
         return tiles;
     }
 
+    /**
+     * Tileset used by the GUI, always contains 16x16 images.
+     *
+     * @param tiles Hashmap with Tile and ImageIcons
+     */
     public void setTiles(HashMap<Tile, ImageIcon> tiles) {
         this.tiles = tiles;
     }

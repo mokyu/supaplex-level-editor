@@ -86,7 +86,7 @@ public class GravitySwitchPort {
     /**
      * Generate gravity switch port based on raw coordinate value directly from
      * *.SP/*.DAT files
-     *
+     * For how to get the unsigned short itself, check out Level.fromByteArray()
      * @param location 16 bit Big Endian unsigned integer
      * @param gravity
      * @param freezeZonks
@@ -96,25 +96,39 @@ public class GravitySwitchPort {
     public GravitySwitchPort(Integer location, boolean gravity, boolean freezeZonks, boolean freezeEnemy, byte padding) {
         this(location / 2 % 60, location / 60 / 2, gravity, freezeZonks, freezeEnemy, padding);
     }
-
+    /**
+     * set x coordinate of the port location
+     * @param newX
+     * @throws RuntimeException when newX is greater than 59 or lower than 0
+     */
     public void setX(int newX) throws RuntimeException {
-        if (newX > 60 || newX < 0) {
+        if (newX > 59 || newX < 0) {
             throw new RuntimeException("x coord out of bounds");
         }
         this.x = newX;
     }
-
+    /**
+     * get x coordinate of the port location
+     * @return 
+     */
     public int getX() {
         return this.x;
     }
-
+    /**
+     * set Y coordinate
+     * @param newY
+     * @throws RuntimeException when newY is greater than 59 or lower than 0
+     */
     public void setY(int newY) throws RuntimeException {
-        if (newY > 60 || newY < 0) {
+        if (newY > 59 || newY < 0) {
             throw new RuntimeException("y coord out of bounds");
         }
         this.y = newY;
     }
-
+    /**
+     * get Y coordinate
+     * @return 
+     */
     public int getY() {
         return this.y;
     }

@@ -33,7 +33,7 @@ public class iconGenerator extends StandardTiles {
     private static final int TILE_SIZE = 16; // Each of these tiles are 16 by 16 pixels in size and stored side by side.
 
     /**
-     * 
+     * Splits up an image into 16x16 tiles with their associated Tile objects
      * @param path, path to the image containing all 40 tiles used by the editor, image is expected to be 656x16 pixels in size.
      * @return  HashMap with a Tile as a key and BufferedImage as value. You can compare these Tile objects with each other to easily get the BufferedImage associated with your Tile()
      */
