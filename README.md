@@ -45,7 +45,9 @@ System.out.Println(level.getTile(new Point(17,12)).getNiceName()); // "Hardware 
 
 ### Installation
 • Install JDK8
+
 • Download the latest level editor release from the releases section.
+
 • `unzip` and open `editor.jar`
 
 ### License
