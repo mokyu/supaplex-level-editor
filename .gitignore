@@ -32,3 +32,5 @@ nbbuild/
 dist/
 nbdist/
 .nb-gradle/
+/distgen/release.zip
+/distgen/temp
