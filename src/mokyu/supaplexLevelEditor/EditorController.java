@@ -21,10 +21,8 @@ import mokyu.libsupaplex.*;
 import java.awt.EventQueue;
 import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.border.*;
 import javax.swing.filechooser.*;
-import java.beans.*;
 import java.util.*;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -298,8 +296,14 @@ public class EditorController implements ActionListener, FocusListener, ItemList
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 view.spawnMsgBox("ERROR", e.toString());
-                                return;
                             }
+                        }
+                    }else {
+                        try{
+                            model.getLevelCollection().loadLevelPackFromFile(chooser.getSelectedFile().getAbsolutePath());
+                        }catch(Exception e) {
+                            e.printStackTrace();
+                            view.spawnMsgBox("ERROR", e.toString());
                         }
                     }
                 }
