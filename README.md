@@ -42,6 +42,7 @@ System.out.Println(level.getName()); // "------DONT PANIC-------"
 // get a specific Tile from the level
 System.out.Println(level.getTile(new Point(17,12)).getNiceName()); // "Hardware (Standard)" 
 ```
+For more info on libsupaplex you can clone the project and generate a javadoc.
 
 ### Installation
 • Install JDK8
