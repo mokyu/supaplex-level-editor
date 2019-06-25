@@ -1,5 +1,5 @@
 # Supaplex level editor
-![demo](https://raw.githubusercontent.com/mokyu/supaplex-level-editor/master/images/demo.jpg)
+![demo](https://raw.githubusercontent.com/mokyu/supaplex-level-editor/assets/assets/demo.jpg)
 ### An open and multi platform level editor for Supaplex
 I've always loved this little Boulder Dash clone from 1991. Ofcourse level editors for this game already [exist](https://www.elmerproductions.com/sp/software.html), but this does not include modern implementations with readily available source code. The goal of this project is to develop a modern multi platform free and open source Supaplex level editor, and of course as a tribute to the original game.
 
