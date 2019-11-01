@@ -10,7 +10,7 @@ I've always loved this little Boulder Dash clone from 1991. Ofcourse level edito
  - Multi language support. English, Dutch and French (Thanks to Raphaël G.)
 
 ### Code Example
-The editor is made of 2 packages. `mokyu.libsupaplex` and `mokyu.libsupaplexLevelEditor`. The former is an easy to use API for interacting with Supaplex levels themselves. While the latter is the level editor itself.
+The editor is made of 2 packages. `mokyu.libsupaplex` and `mokyu.libsupaplexLevelEditor`. The latter is an easy to use API for interacting with existing and creating new Supaplex levels from scratch. While the former is the level editor itself.
 
    ```java
 // create an empty level collection with 111 empty levels
