@@ -52,6 +52,6 @@ For more info on libsupaplex you can clone the project and generate a javadoc.
 • `unzip` and open `editor.jar`
 
 ### License
-GPLv3 © (Mokyu) Emiel van der Hooft 
+GPLv3 © (Mokyu)
 
 2019
